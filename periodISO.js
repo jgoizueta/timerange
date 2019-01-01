@@ -30,9 +30,17 @@ function pad (x, n) {
 
 function utcDate(...components) {
     if (components.length > 1) {
-        components = [components[0], components[1]+1, ...components.slice(2)]
+        components = [components[0], components[1] - 1, ...components.slice(2)]
     }
     return new Date(Date.UTC(...components));
+}
+
+function* take(n, iterable) {
+    for (let x of iterable) {
+        if (n <= 0) return;
+        n--;
+        yield x;
+    }
 }
 
 function normDate(...components) {
@@ -113,8 +121,11 @@ function isoInterval (first, last) {
     if (first === last) {
         return first;
     }
-    const l = commonPrefixLength(first, last);
-    if (l > 0 && isDigit(first[l]) !== isDigit(first[l + 1])) {
+    let l = commonPrefixLength(first, last);
+    while (l > 0 && isDigit(first[l - 1]) === isDigit(first[l])) {
+        --l;
+    }
+    if (l > 0) {
         last = last.slice(l);
     }
     return `${first}${INTERVAL_SEP[0]}${last}`;
@@ -240,20 +251,20 @@ class MonthsPeriod extends Period {
             duration /= 6;
             resolution = 'semester';
             isoFirst = isoSemester(y1, m1);
-            isoLast = duration === 1 ? isoFirst : isoSemester(...normDate(y1, m1 - 6));
+            isoLast = duration === 1 ? isoFirst : isoSemester(...normDate(y2, m2 - 6));
         } else if (duration % 4 === 0 && ((m1 - 1) % 4) === 0) {
             duration /= 4;
             resolution = 'trimester';
             isoFirst = isoTrimester(y1, m1);
-            isoLast = duration === 1 ? isoFirst : isoTrimester(...normDate(y1, m1 - 4));
+            isoLast = duration === 1 ? isoFirst : isoTrimester(...normDate(y2, m2 - 4));
         } else if (duration % 3 === 0 && ((m1 - 1) % 3) === 0) {
             duration /= 3;
             resolution = 'quarter';
             isoFirst = isoQuarter(y1, m1);
-            isoLast = duration === 1 ? isoFirst : isoQuarter(...normDate(y1, m1 - 3));
+            isoLast = duration === 1 ? isoFirst : isoQuarter(...normDate(y2, m2 - 3));
         } else {
             isoFirst = isoMonth(y1, m1);
-            isoLast = duration === 1 ? isoFirst : isoMonth(...normDate(y1, m1 - 1));
+            isoLast = duration === 1 ? isoFirst : isoMonth(...normDate(y2, m2 - 1));
         }
         return { duration, resolution, isoFirst, isoLast };
     }
