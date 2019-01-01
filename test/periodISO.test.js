@@ -4,8 +4,8 @@ function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
     return Date.UTC(y, m - 1, d, h, min, sec);
 }
 
-function ISOperiod (start, end) {
-    const { iso, duration, resolution } = periodISO(start, end, false);
+function ISOperiod (start, end, forced=null) {
+    const { iso, duration, resolution } = periodISO(start, end, forced, false);
     return [iso, duration, resolution];
 }
 
@@ -131,5 +131,14 @@ describe('periodISO multiple calendar units', () => {
     });
     test('should compute correct minute', () => {
         expect(ISOperiod(time(2017, 12, 1, 3, 2), time(2017, 12, 2, 3, 2))).toEqual(['2017-12-01T03:02--02T03:01', 1440, 'minute']);
+    });
+
+    describe('periodISO with forced resolution', () => {
+        test('forced centuries', () => {
+            expect(ISOperiod(time(2001), time(3001), 'century')).toEqual(['C21--30', 10, 'century']);
+            expect(ISOperiod(time(1001), time(2001), 'century')).toEqual(['C11--20', 10, 'century']);
+            expect(ISOperiod(time(2001), time(4001), 'century')).toEqual(['C21--40', 20, 'century']);
+            expect(ISOperiod(time(1001), time(4001), 'century')).toEqual(['C11--40', 30, 'century']);
+        });
     });
 });

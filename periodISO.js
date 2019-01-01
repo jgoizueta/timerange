@@ -6,6 +6,21 @@ const DAY_LEVEL = 2;
 const HOUR_LEVEL = 3;
 const MINUTE_LEVEL = 4;
 const SECOND_LEVEL = 5;
+const RESOLUTION_LEVEL = {
+  'millenium': TIME_LEVELS.indexOf('year'),
+  'century': TIME_LEVELS.indexOf('year'),
+  'decade': TIME_LEVELS.indexOf('year'),
+  'year': TIME_LEVELS.indexOf('year'),
+  'semester': TIME_LEVELS.indexOf('month'),
+  'trimester': TIME_LEVELS.indexOf('month'),
+  'quarter': TIME_LEVELS.indexOf('month'),
+  'month': TIME_LEVELS.indexOf('month'),
+  'week': TIME_LEVELS.indexOf('day'),
+  'day': TIME_LEVELS.indexOf('day'),
+  'hour': TIME_LEVELS.indexOf('hour'),
+  'minute': TIME_LEVELS.indexOf('minute'),
+  'second': TIME_LEVELS.indexOf('second')
+};
 
 const MS_PER_DAY = 86400000;
 const MS_PER_HOUR = 3600000;
@@ -77,6 +92,11 @@ function invalidPeriod (period, invalid) {
     throw new Error(`Invalid ${invalid} period between ${period.v1} and ${period.v2}`);
 }
 
+function invalidResolution (period, forcedResolution) {
+    throw new Error(`Invalid forced resolution ${forcedResolution} for period between ${period.v1} and ${period.v2}`);
+}
+
+
 // Return year and week number given year and day number
 function yearWeek (y, yd) {
     const dow = isoDow(y, 1, 1);
@@ -135,8 +155,11 @@ class Period {
     check (maxLevel) {
         return maxLevel === this.level();
     }
-    range (period, onlyCalendarUnit) {
-        let { duration, resolution, isoFirst, isoLast } = this._reduce(period);
+    range (period, forcedResolution, onlyCalendarUnit) {
+        let { duration, resolution, isoFirst, isoLast } = this._reduce(period, forcedResolution);
+        if (forcedResolution && resolution !== forcedResolution) {
+            invalidResolution (period, forcedResolution);
+        }
         if (duration !== 1) {
             if (onlyCalendarUnit) {
                 invalidPeriod(`${duration}-${resolution}`);
@@ -145,6 +168,9 @@ class Period {
         return {
             duration, resolution, iso: isoInterval(isoFirst, isoLast)
         }
+    }
+    _isForced (forcedResolution, resolution) {
+        return !forcedResolution || forcedResolution === resolution;
     }
 }
 
@@ -205,23 +231,23 @@ class YearsPeriod extends Period {
         return YEAR_LEVEL;
     }
 
-    _reduce (period) {
+    _reduce (period, forcedResolution) {
         const y1 = period.t1.year;
         const y2 = period.t2.year;
         let duration = y2 - y1;
         let resolution = 'year';
         let isoFirst, isoLast;
-        if (duration % 1000 === 0 && ((y1 - 1) % 1000) === 0) {
+        if (duration % 1000 === 0 && ((y1 - 1) % 1000) === 0 && this._isForced(forcedResolution, 'millenium')) {
             duration /= 1000;
             resolution = 'millenium';
             isoFirst = isoMillenium(1 + (y1 - 1) / 1000);
             isoLast = duration === 1 ? isoFirst : isoMillenium(1 + (y2 - 1) / 1000 - 1);
-        } else if (duration % 100 === 0 && ((y1 - 1) % 100) === 0) {
+        } else if (duration % 100 === 0 && ((y1 - 1) % 100) === 0 && this._isForced(forcedResolution, 'century')) {
             duration /= 100;
             resolution = 'century';
             isoFirst = isoCentury(1 + (y1 - 1) / 100);
             isoLast = duration === 1 ? isoFirst : isoCentury(1 + (y2 - 1) / 100 - 1);
-        } else if (duration % 10 === 0 && (y1 % 10) === 0) {
+        } else if (duration % 10 === 0 && (y1 % 10) === 0 && this._isForced(forcedResolution, 'decade')) {
             duration /= 10;
             resolution = 'decade';
             isoFirst = isoDecade(y1 / 10);
@@ -353,14 +379,22 @@ const periodHandlers = [
     new SecondsPeriod()
 ];
 
-module.exports = function periodISO (v1, v2, onlyCalendarUnit=true) {
-    const t1 = parsedValue(v1);
+module.exports = function periodISO (v1, v2, resolution=null, onlyCalendarUnit=true) {
     const t2 = parsedValue(v2);
+    const t1 = parsedValue(v1);
     const l1 = startLevel(t1);
     const l2 = startLevel(t2);
     const period = { v1, v2, t1, t2 };
-    const level = Math.max(l1, l2);
+    let level = Math.max(l1, l2);
+
+    if (resolution) {
+        const rLevel = RESOLUTION_LEVEL[resolution];
+        if (rLevel < level) {
+            invalidResolution (period, resolution);
+        }
+        level = rLevel;
+    }
 
     const handler = periodHandlers.find(handler => handler.check(level));
-    return handler.range(period, onlyCalendarUnit);
+    return handler.range(period, resolution, onlyCalendarUnit);
 }
