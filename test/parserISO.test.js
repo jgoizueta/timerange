@@ -522,7 +522,17 @@ describe('parseISO resolution', () => {
         expect(resolution('C21..22')).toEqual('century');
         expect(resolution('D210..211')).toEqual('decade');
         expect(resolution('M3..M3')).toEqual('millennium');
+
+
     });
+
+    test('on complex abbreviated period respect displayed resolution', () => {
+        expect(resolution('2018-01-01..2018-12-31')).toEqual('day');
+        expect(resolution('1901..2000')).toEqual('year');
+        expect(resolution('1901-01..2000-12')).toEqual('month');
+        expect(resolution('2017-Q1..2017-Q2')).toEqual('quarter');
+    });
+
     test('on complex iso period', () => {
         expect(resolution('2018/2019')).toEqual('year');
         expect(resolution('2018/2021')).toEqual('year');
@@ -540,4 +550,13 @@ describe('parseISO resolution', () => {
         expect(resolution('D210/212')).toEqual('decade');
         expect(resolution('M3/M4')).toEqual('millennium');
     });
+
+    test('on complex iso period respect displayed resolution', () => {
+        expect(resolution('2018-01-01/2019-01-01')).toEqual('day');
+        expect(resolution('1901/2001')).toEqual('year');
+        expect(resolution('1901-01/2001-01')).toEqual('month');
+        expect(resolution('2017-Q1/2018-Q1')).toEqual('quarter');
+        expect(resolution('2017-Q1/2018-Q1')).toEqual('quarter');
+    });
+
 });
