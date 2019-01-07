@@ -5,8 +5,8 @@ function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
 }
 
 function ISOperiod (start, end, forced=null) {
-    const { iso, duration, resolution } = periodISO(start, end, forced, false);
-    return [iso, duration, resolution];
+    const { abbr, duration, resolution } = periodISO(start, end, forced, false);
+    return [abbr, duration, resolution];
 }
 
 describe('periodISO calendar units', () => {

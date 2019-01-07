@@ -134,20 +134,31 @@ function isDigit(chr) {
     return !!(chr.match(/^\d$/));
 }
 
-// ISO intervals use the syntax START/END or START--END, with exclusive END
-// Here we used a different convention for a simplified format, where for single calendar units
-// only one time is specified (with the level of detail implying the end) and using inclusive END otherwise.
-function isoInterval (first, last) {
-    if (first === last) {
-        return first;
-    }
-    let l = commonPrefixLength(first, last);
-    while (l > 0 && isDigit(first[l - 1]) === isDigit(first[l])) {
+function reduce(start, end) {
+    let l = commonPrefixLength(start, end);
+    while (l > 0 && isDigit(start[l - 1]) === isDigit(start[l])) {
         --l;
     }
     if (l > 0) {
-        last = last.slice(l);
+        end = end.slice(l);
     }
+    return [start, end];
+}
+
+function isoInterval (first, next) {
+    [first, next] = reduce(first, next);
+    return `${first}/${next}`;
+}
+
+// Abbreviated interval notation uses a single ISO specifier for simple calendar units,
+// and otherwise uses FIRST--LAST syntax where LAST, unlike in ISO intervals, is inclusive,
+// so that FIRST is the ISO of the initial calendar unit, and LAST that of the final unit in
+// the period.
+function abbrInterval (first, last) {
+    if (first === last) {
+        return first;
+    }
+    [first, last] = reduce(first, last);
     return `${first}${INTERVAL_SEP[0]}${last}`;
 }
 
@@ -156,7 +167,7 @@ class Period {
         return maxLevel === this.level();
     }
     range (period, forcedResolution, onlyCalendarUnit) {
-        let { duration, resolution, isoFirst, isoLast } = this._reduce(period, forcedResolution);
+        let { duration, resolution, isoFirst, isoLast, isoNext } = this._reduce(period, forcedResolution);
         if (forcedResolution && resolution !== forcedResolution) {
             invalidResolution (period, forcedResolution);
         }
@@ -166,7 +177,7 @@ class Period {
             }
         }
         return {
-            duration, resolution, iso: isoInterval(isoFirst, isoLast)
+            duration, resolution, iso: isoInterval(isoFirst, isoNext), abbr: abbrInterval(isoFirst, isoLast)
         }
     }
     _isForced (forcedResolution, resolution) {
@@ -236,27 +247,31 @@ class YearsPeriod extends Period {
         const y2 = period.t2.year;
         let duration = y2 - y1;
         let resolution = 'year';
-        let isoFirst, isoLast;
+        let isoFirst, isoLast, isoNext;
         if (duration % 1000 === 0 && ((y1 - 1) % 1000) === 0 && this._isForced(forcedResolution, 'millenium')) {
             duration /= 1000;
             resolution = 'millenium';
             isoFirst = isoMillenium(1 + (y1 - 1) / 1000);
+            isoNext = isoMillenium(1 + (y2 - 1) / 1000);
             isoLast = duration === 1 ? isoFirst : isoMillenium(1 + (y2 - 1) / 1000 - 1);
         } else if (duration % 100 === 0 && ((y1 - 1) % 100) === 0 && this._isForced(forcedResolution, 'century')) {
             duration /= 100;
             resolution = 'century';
             isoFirst = isoCentury(1 + (y1 - 1) / 100);
+            isoNext = isoCentury(1 + (y2 - 1) / 100);
             isoLast = duration === 1 ? isoFirst : isoCentury(1 + (y2 - 1) / 100 - 1);
         } else if (duration % 10 === 0 && (y1 % 10) === 0 && this._isForced(forcedResolution, 'decade')) {
             duration /= 10;
             resolution = 'decade';
             isoFirst = isoDecade(y1 / 10);
+            isoNext = isoDecade(y2 / 10);
             isoLast = duration === 1 ? isoFirst : isoDecade(y2 / 10 - 1);
         } else {
             isoFirst = isoYear(y1);
+            isoNext = isoYear(y2);
             isoLast = duration === 1 ? isoFirst : isoYear(y2 - 1);
         }
-        return { duration, resolution, isoFirst, isoLast };
+        return { duration, resolution, isoFirst, isoLast, isoNext };
     }
 }
 
@@ -272,28 +287,37 @@ class MonthsPeriod extends Period {
         const m2 = period.t2.month;
         let duration = 12 * y2 + m2 - 12 * y1 - m1;
         let resolution = 'month';
-        let isoFirst, isoLast;
+        let isoFirst, isoLast, isoNext;
         if (duration % 6 === 0 && ((m1 - 1) % 6) === 0) {
             duration /= 6;
             resolution = 'semester';
             isoFirst = isoSemester(y1, m1);
+            isoNext = isoSemester(y2, m2);
             isoLast = duration === 1 ? isoFirst : isoSemester(...normDate(y2, m2 - 6));
         } else if (duration % 4 === 0 && ((m1 - 1) % 4) === 0) {
             duration /= 4;
             resolution = 'trimester';
             isoFirst = isoTrimester(y1, m1);
+            isoNext = isoTrimester(y2, m2);
             isoLast = duration === 1 ? isoFirst : isoTrimester(...normDate(y2, m2 - 4));
         } else if (duration % 3 === 0 && ((m1 - 1) % 3) === 0) {
             duration /= 3;
             resolution = 'quarter';
             isoFirst = isoQuarter(y1, m1);
+            isoNext = isoQuarter(y2, m2);
             isoLast = duration === 1 ? isoFirst : isoQuarter(...normDate(y2, m2 - 3));
         } else {
             isoFirst = isoMonth(y1, m1);
+            isoNext = isoMonth(y2, m2);
             isoLast = duration === 1 ? isoFirst : isoMonth(...normDate(y2, m2 - 1));
         }
-        return { duration, resolution, isoFirst, isoLast };
+        return { duration, resolution, isoFirst, isoLast, isoNext };
     }
+}
+
+function yearDay(y, v) {
+    const v0 = Date.UTC(y, 0, 1);
+    return 1 + Math.round((v - v0) / MS_PER_DAY);
 }
 
 class DaysPeriod extends Period {
@@ -304,24 +328,26 @@ class DaysPeriod extends Period {
     _reduce (period) {
         let duration = Math.round((period.v2 - period.v1) / MS_PER_DAY);
         let resolution = 'day';
-        let isoFirst, isoLast;
+        let isoFirst, isoLast, isoNext;
         if (duration % 7 === 0) {
             let y = period.t1.year;
             const v0 = Date.UTC(y, 0, 1);
-            let yd = 1 + Math.round((period.v1 - v0) / MS_PER_DAY);
+            let yd = yearDay(y, period.v1);
             const [iy, w] = yearWeek(y, yd);
             if (iy && w) {
                 duration /= 7;
                 resolution = 'week';
                 isoFirst = isoWeek(iy, w);
+                isoNext = isoWeek(...yearWeek(period.t2.year, yearDay(period.t2.year, period.v2)));
                 isoLast = duration === 1 ? isoFirst : isoWeek(...yearWeek(y, yd + (duration - 1) * 7));
             }
         }
         if (!isoFirst) {
             isoFirst = isoDay(period.t1.year, period.t1.month, period.t1.day);
+            isoNext = isoDay(period.t2.year, period.t2.month, period.t2.day);
             isoLast = duration === 1 ? isoFirst : isoDay(...normDate(period.t2.year, period.t2.month, period.t2.day - 1));
         }
-        return { duration, resolution, isoFirst, isoLast };
+        return { duration, resolution, isoFirst, isoLast, isoNext };
     }
 }
 
@@ -333,10 +359,11 @@ class HoursPeriod extends Period {
     _reduce (period) {
         const duration = Math.round((period.v2 - period.v1) / MS_PER_HOUR);
         const isoFirst = isoHour(period.t1.year, period.t1.month, period.t1.day, period.t1.hour);
+        const isoNext = isoHour(period.t2.year, period.t2.month, period.t2.day, period.t2.hour);
         const isoLast = (duration === 1)
             ? isoFirst
             : isoHour(...normDate(period.t2.year, period.t2.month, period.t2.day, period.t2.hour - 1));
-        return { duration, resolution: 'hour', isoFirst, isoLast };
+        return { duration, resolution: 'hour', isoFirst, isoLast, isoNext };
     }
 }
 
@@ -348,10 +375,11 @@ class MinutesPeriod extends Period {
     _reduce (period) {
         const duration = Math.round((period.v2 - period.v1) / MS_PER_MINUTE);
         const isoFirst = isoMinute(period.t1.year, period.t1.month, period.t1.day, period.t1.hour, period.t1.minute);
+        const isoNext = isoMinute(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute);
         const isoLast = (duration === 1)
             ? isoFirst
             : isoMinute(...normDate(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute - 1));
-        return { duration, resolution: 'minute', isoFirst, isoLast };
+        return { duration, resolution: 'minute', isoFirst, isoLast, isoNext };
     }
 }
 
@@ -363,10 +391,11 @@ class SecondsPeriod extends Period {
     _reduce (period) {
         const duration = Math.round((period.v2 - period.v1) / MS_PER_S);
         let isoFirst = isoSecond(period.t1.year, period.t1.month, period.t1.day, period.t1.hour, period.t1.minute, period.t1.second);
+        let isoNext = isoSecond(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute, period.t2.second);
         const isoLast = (duration === 1)
             ? isoFirst
             : isoSecond(...normDate(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute, period.t2.second - 1));
-        return { duration, resolution: 'second', isoFirst, isoLast };
+        return { duration, resolution: 'second', isoFirst, isoLast, isoNext };
     }
 }
 
