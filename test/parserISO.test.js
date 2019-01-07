@@ -152,8 +152,8 @@ describe('parseISO on complex interval', () => {
     });
 
     test('abcxyz should compute correct year end time', () => {
-        //expect(endTimeValue('2017--2017')).toEqual(time(2018));
+        expect(endTimeValue('2017--2017')).toEqual(time(2018));
         expect(endTimeValue('2017--2018')).toEqual(time(2019));
-        //expect(endTimeValue('2017--2019')).toEqual(time(2020));
+        expect(endTimeValue('2017--2019')).toEqual(time(2020));
     });
 });
