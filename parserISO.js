@@ -205,19 +205,20 @@ ISO_INTERVAL_SEP = '/';
 
 module.exports = function parseISO (iso) {
     iso = iso || '';
-    let abbr = false;
+    let abbr = null;
     let isoStart = iso;
     let isoEnd = null;
-    if (iso.includes(ABBR_INTERVAL_SEP)) {
-        abbr = true;
-        [isoStart, isoEnd] = iso.split(ABBR_INTERVAL_SEP);
-    } else {
-        for (let sep of ISO_INTERVAL_SEPS) {
+    for (let [isAbbr, seps] of [[true, [ABBR_INTERVAL_SEP]], [false, ISO_INTERVAL_SEPS]]) {
+        for (let sep of seps) {
             if (iso.includes(sep)) {
+                abbr = isAbbr;
                 [isoStart, isoEnd] = iso.split(sep);
                 break;
             }
         };
+        if (abbr !== null) {
+            break;
+        }
     };
     const startParser = findParser(isoStart);
     if (!startParser) {
