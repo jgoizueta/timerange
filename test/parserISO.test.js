@@ -16,6 +16,10 @@ function endTimeValue (iso) {
     return timeValue(parserISO(iso).end);
 }
 
+function resolution (iso) {
+    return parserISO(iso).resolution;
+}
+
 describe('parseISO on single calendar unit', () => {
     test('should compute correct year start time', () => {
         expect(startTimeValue('2017')).toEqual(time(2017));
@@ -485,5 +489,55 @@ describe('parseISO on complex iso interval', () => {
         expect(endTimeValue('M1/M4')).toEqual(time(3001));
         expect(endTimeValue('M2/4')).toEqual(time(3001));
         expect(endTimeValue('M2/M4')).toEqual(time(3001));
+    });
+});
+
+describe('parseISO resolution', () => {
+    test('on single calendar unit', () => {
+        expect(resolution('2018')).toEqual('year');
+        expect(resolution('2018-12')).toEqual('month');
+        expect(resolution('2018-12-31')).toEqual('day');
+        expect(resolution('2018-12-31T03')).toEqual('hour');
+        expect(resolution('2018-12-31T03:02')).toEqual('minute');
+        expect(resolution('2018-12-31T03:02:03')).toEqual('second');
+        expect(resolution('2018-Q1')).toEqual('quarter');
+        expect(resolution('2018-W03')).toEqual('week');
+        expect(resolution('C21')).toEqual('century');
+        expect(resolution('D210')).toEqual('decade');
+        expect(resolution('M3')).toEqual('millennium');
+    });
+    test('on complex abbreviated period', () => {
+        expect(resolution('2018..2018')).toEqual('year');
+        expect(resolution('2018..2020')).toEqual('year');
+        expect(resolution('2018-02..04')).toEqual('month');
+        expect(resolution('2018-02..2018-04')).toEqual('month');
+        expect(resolution('2018-02..2019-01')).toEqual('month');
+        expect(resolution('2018-12-31..2019-01-01')).toEqual('day');
+        expect(resolution('2018-12-31T03..04')).toEqual('hour');
+        expect(resolution('2018-12-31T03:02..T04:03')).toEqual('minute');
+        expect(resolution('2018-12-31T03:02:03')).toEqual('second');
+        expect(resolution('2018-12-31T03:02:03..04:03:01')).toEqual('second');
+        expect(resolution('2018-Q1..Q3')).toEqual('quarter');
+        expect(resolution('2018-W03..05')).toEqual('week');
+        expect(resolution('C21..22')).toEqual('century');
+        expect(resolution('D210..211')).toEqual('decade');
+        expect(resolution('M3..M3')).toEqual('millennium');
+    });
+    test('on complex iso period', () => {
+        expect(resolution('2018/2019')).toEqual('year');
+        expect(resolution('2018/2021')).toEqual('year');
+        expect(resolution('2018-02/04')).toEqual('month');
+        expect(resolution('2018-02/2018-04')).toEqual('month');
+        expect(resolution('2018-02/2019-01')).toEqual('month');
+        expect(resolution('2018-12-31/2019-01-01')).toEqual('day');
+        expect(resolution('2018-12-31T03/04')).toEqual('hour');
+        expect(resolution('2018-12-31T03:02/T04:03')).toEqual('minute');
+        expect(resolution('2018-12-31T03:02:03')).toEqual('second');
+        expect(resolution('2018-12-31T03:02:03/04:03:01')).toEqual('second');
+        expect(resolution('2018-Q1/Q4')).toEqual('quarter');
+        expect(resolution('2018-W03/06')).toEqual('week');
+        expect(resolution('C21/23')).toEqual('century');
+        expect(resolution('D210/212')).toEqual('decade');
+        expect(resolution('M3/M4')).toEqual('millennium');
     });
 });
