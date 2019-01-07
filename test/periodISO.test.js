@@ -57,8 +57,8 @@ describe('periodISO calendar units', () => {
         expect(abbrPeriod(time(1801), time(1901))).toEqual(['C19', 1, 'century']);
     });
     test('should compute correct millennium', () => {
-        expect(abbrPeriod(time(2001), time(3001))).toEqual(['M3', 1, 'millenium']);
-        expect(abbrPeriod(time(1001), time(2001))).toEqual(['M2', 1, 'millenium']);
+        expect(abbrPeriod(time(2001), time(3001))).toEqual(['M3', 1, 'millennium']);
+        expect(abbrPeriod(time(1001), time(2001))).toEqual(['M2', 1, 'millennium']);
     });
     test('should compute correct decade', () => {
         expect(abbrPeriod(time(2000), time(2010))).toEqual(['D200', 1, 'decade']);
@@ -70,9 +70,9 @@ describe('periodISO calendar units', () => {
 });
 
 describe('periodISO abbr multiple calendar units', () => {
-    test('milleniums period', () => {
-        expect(abbrPeriod(time(2001), time(4001))).toEqual(['M3..4', 2, 'millenium']);
-        expect(abbrPeriod(time(1001), time(4001))).toEqual(['M2..4', 3, 'millenium']);
+    test('millenniums period', () => {
+        expect(abbrPeriod(time(2001), time(4001))).toEqual(['M3..4', 2, 'millennium']);
+        expect(abbrPeriod(time(1001), time(4001))).toEqual(['M2..4', 3, 'millennium']);
     });
     test('centuries period', () => {
         expect(abbrPeriod(time(2001), time(2201))).toEqual(['C21..22', 2, 'century']);
@@ -139,7 +139,7 @@ describe('periodISO abbr multiple calendar units', () => {
 });
 
 describe('periodISO iso multiple calendar units', () => {
-    test('milleniums period', () => {
+    test('millenniums period', () => {
         expect(isoPeriod(time(2001), time(4001))).toEqual('M3/5');
         expect(isoPeriod(time(1001), time(4001))).toEqual('M2/5');
     });

@@ -7,7 +7,7 @@ const HOUR_LEVEL = 3;
 const MINUTE_LEVEL = 4;
 const SECOND_LEVEL = 5;
 const RESOLUTION_LEVEL = {
-  'millenium': TIME_LEVELS.indexOf('year'),
+  'millennium': TIME_LEVELS.indexOf('year'),
   'century': TIME_LEVELS.indexOf('year'),
   'decade': TIME_LEVELS.indexOf('year'),
   'year': TIME_LEVELS.indexOf('year'),
@@ -187,7 +187,7 @@ class Period {
     }
 }
 
-function isoMillenium(m) {
+function isoMillennium(m) {
     return `M${m}`;
 }
 
@@ -250,12 +250,12 @@ class YearsPeriod extends Period {
         let duration = y2 - y1;
         let resolution = 'year';
         let isoFirst, isoLast, isoNext;
-        if (duration % 1000 === 0 && ((y1 - 1) % 1000) === 0 && this._isForced(forcedResolution, 'millenium')) {
+        if (duration % 1000 === 0 && ((y1 - 1) % 1000) === 0 && this._isForced(forcedResolution, 'millennium')) {
             duration /= 1000;
-            resolution = 'millenium';
-            isoFirst = isoMillenium(1 + (y1 - 1) / 1000);
-            isoNext = isoMillenium(1 + (y2 - 1) / 1000);
-            isoLast = duration === 1 ? isoFirst : isoMillenium(1 + (y2 - 1) / 1000 - 1);
+            resolution = 'millennium';
+            isoFirst = isoMillennium(1 + (y1 - 1) / 1000);
+            isoNext = isoMillennium(1 + (y2 - 1) / 1000);
+            isoLast = duration === 1 ? isoFirst : isoMillennium(1 + (y2 - 1) / 1000 - 1);
         } else if (duration % 100 === 0 && ((y1 - 1) % 100) === 0 && this._isForced(forcedResolution, 'century')) {
             duration /= 100;
             resolution = 'century';
