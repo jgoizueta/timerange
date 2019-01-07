@@ -128,7 +128,9 @@ function commonPrefixLength(s1, s2) {
     return l;
 }
 
-INTERVAL_SEP = [ '--', '/' ];
+ABBR_INTERVAL_SEP = '..';
+ISO_INTERVAL_SEPS = [ '--', '/' ];
+ISO_INTERVAL_SEP = '/';
 
 function isDigit(chr) {
     return !!(chr.match(/^\d$/));
@@ -147,7 +149,7 @@ function reduce(start, end) {
 
 function isoInterval (first, next) {
     [first, next] = reduce(first, next);
-    return `${first}/${next}`;
+    return `${first}${ISO_INTERVAL_SEP}${next}`;
 }
 
 // Abbreviated interval notation uses a single ISO specifier for simple calendar units,
@@ -159,7 +161,7 @@ function abbrInterval (first, last) {
         return first;
     }
     [first, last] = reduce(first, last);
-    return `${first}${INTERVAL_SEP[0]}${last}`;
+    return `${first}${ABBR_INTERVAL_SEP}${last}`;
 }
 
 class Period {

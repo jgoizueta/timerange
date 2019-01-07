@@ -199,17 +199,25 @@ function findParser (iso) {
     return isoFormats.find(parser => parser.check(iso));
 }
 
-INTERVAL_SEP = [ '--', '/' ];
+ABBR_INTERVAL_SEP = '..';
+ISO_INTERVAL_SEPS = [ '--', '/' ];
+ISO_INTERVAL_SEP = '/';
 
 module.exports = function parseISO (iso) {
     iso = iso || '';
+    let abbr = false;
     let isoStart = iso;
     let isoEnd = null;
-    for (let sep of INTERVAL_SEP) {
-        if (iso.includes(sep)) {
-            [isoStart, isoEnd] = iso.split(sep);
-            break;
-        }
+    if (iso.includes(ABBR_INTERVAL_SEP)) {
+        abbr = true;
+        [isoStart, isoEnd] = iso.split(ABBR_INTERVAL_SEP);
+    } else {
+        for (let sep of ISO_INTERVAL_SEPS) {
+            if (iso.includes(sep)) {
+                [isoStart, isoEnd] = iso.split(sep);
+                break;
+            }
+        };
     };
     const startParser = findParser(isoStart);
     if (!startParser) {
@@ -226,7 +234,8 @@ module.exports = function parseISO (iso) {
         if (!endParser) {
             throw new Error(`No date parser found for ${iso}`);
         }
-        end = endParser.parse(isoEnd)[1];
+        const [endStart, endEnd] = endParser.parse(isoEnd);
+        end = abbr ? endEnd : endStart;
     }
     return [start, end];
 }

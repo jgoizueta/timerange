@@ -146,163 +146,163 @@ describe('parseISO on single calendar unit', () => {
 
 describe('parseISO on complex interval', () => {
     test('should compute correct year start time', () => {
-        expect(startTimeValue('2017--2017')).toEqual(time(2017));
-        expect(startTimeValue('2017--2018')).toEqual(time(2017));
-        expect(startTimeValue('2017--2019')).toEqual(time(2017));
+        expect(startTimeValue('2017..2017')).toEqual(time(2017));
+        expect(startTimeValue('2017..2018')).toEqual(time(2017));
+        expect(startTimeValue('2017..2019')).toEqual(time(2017));
     });
 
     test('should compute correct year end time', () => {
-        expect(endTimeValue('2017--2017')).toEqual(time(2018));
-        expect(endTimeValue('2017--2018')).toEqual(time(2019));
-        expect(endTimeValue('2017--2019')).toEqual(time(2020));
+        expect(endTimeValue('2017..2017')).toEqual(time(2018));
+        expect(endTimeValue('2017..2018')).toEqual(time(2019));
+        expect(endTimeValue('2017..2019')).toEqual(time(2020));
     });
 
     test('should compute correct month start time', () => {
-        expect(startTimeValue('2017-12--2018-03')).toEqual(time(2017, 12));
-        expect(startTimeValue('2017-03--2017-06')).toEqual(time(2017, 3));
-        expect(startTimeValue('2017-03--06')).toEqual(time(2017, 3));
+        expect(startTimeValue('2017-12..2018-03')).toEqual(time(2017, 12));
+        expect(startTimeValue('2017-03..2017-06')).toEqual(time(2017, 3));
+        expect(startTimeValue('2017-03..06')).toEqual(time(2017, 3));
     });
 
     test('should compute correct month end time', () => {
-        expect(endTimeValue('2017-12--2018-03')).toEqual(time(2018, 4));
-        expect(endTimeValue('2017-03--2017-06')).toEqual(time(2017, 7));
-        expect(endTimeValue('2017-03--06')).toEqual(time(2017, 7));
+        expect(endTimeValue('2017-12..2018-03')).toEqual(time(2018, 4));
+        expect(endTimeValue('2017-03..2017-06')).toEqual(time(2017, 7));
+        expect(endTimeValue('2017-03..06')).toEqual(time(2017, 7));
     });
 
     test('should compute correct day start time', () => {
-        expect(startTimeValue('2017-12-31--2018-03-14')).toEqual(time(2017, 12, 31));
-        expect(startTimeValue('2017-03-12--2017-06-14')).toEqual(time(2017, 3, 12));
-        expect(startTimeValue('2017-03-12--06-14')).toEqual(time(2017, 3, 12));
-        expect(startTimeValue('2017-03-12--14')).toEqual(time(2017, 3, 12));
+        expect(startTimeValue('2017-12-31..2018-03-14')).toEqual(time(2017, 12, 31));
+        expect(startTimeValue('2017-03-12..2017-06-14')).toEqual(time(2017, 3, 12));
+        expect(startTimeValue('2017-03-12..06-14')).toEqual(time(2017, 3, 12));
+        expect(startTimeValue('2017-03-12..14')).toEqual(time(2017, 3, 12));
     });
 
     test('should compute correct day end time', () => {
-        expect(endTimeValue('2017-12-31--2018-03-14')).toEqual(time(2018, 3, 15));
-        expect(endTimeValue('2017-03-12--2017-06-14')).toEqual(time(2017, 6, 15));
-        expect(endTimeValue('2017-03-12--06-14')).toEqual(time(2017, 6, 15));
-        expect(endTimeValue('2017-03-12--14')).toEqual(time(2017, 3, 15));
+        expect(endTimeValue('2017-12-31..2018-03-14')).toEqual(time(2018, 3, 15));
+        expect(endTimeValue('2017-03-12..2017-06-14')).toEqual(time(2017, 6, 15));
+        expect(endTimeValue('2017-03-12..06-14')).toEqual(time(2017, 6, 15));
+        expect(endTimeValue('2017-03-12..14')).toEqual(time(2017, 3, 15));
     });
     test('should compute correct hour start time', () => {
-        expect(startTimeValue('2017-12-07T21--23')).toEqual(time(2017, 12, 7, 21));
-        expect(startTimeValue('2017-12-07T21--07T23')).toEqual(time(2017, 12, 7, 21));
-        expect(startTimeValue('2017-12-07T21--12-07T23')).toEqual(time(2017, 12, 7, 21));
-        expect(startTimeValue('2017-12-07T21--2017-12-07T23')).toEqual(time(2017, 12, 7, 21));
-        expect(startTimeValue('2017-12-07T21--2018-02-07T23')).toEqual(time(2017, 12, 7, 21));
-        expect(startTimeValue('2017-03-07T21--05-07T23')).toEqual(time(2017, 3, 7, 21));
+        expect(startTimeValue('2017-12-07T21..23')).toEqual(time(2017, 12, 7, 21));
+        expect(startTimeValue('2017-12-07T21..07T23')).toEqual(time(2017, 12, 7, 21));
+        expect(startTimeValue('2017-12-07T21..12-07T23')).toEqual(time(2017, 12, 7, 21));
+        expect(startTimeValue('2017-12-07T21..2017-12-07T23')).toEqual(time(2017, 12, 7, 21));
+        expect(startTimeValue('2017-12-07T21..2018-02-07T23')).toEqual(time(2017, 12, 7, 21));
+        expect(startTimeValue('2017-03-07T21..05-07T23')).toEqual(time(2017, 3, 7, 21));
     });
 
     test('should compute correct hour end time', () => {
-        expect(endTimeValue('2017-12-07T21--23')).toEqual(time(2017, 12, 7, 24));
-        expect(endTimeValue('2017-12-07T21--07T23')).toEqual(time(2017, 12, 7, 24));
-        expect(endTimeValue('2017-12-07T21--12-07T23')).toEqual(time(2017, 12, 7, 24));
-        expect(endTimeValue('2017-12-07T21--2017-12-07T23')).toEqual(time(2017, 12, 7, 24));
-        expect(endTimeValue('2017-12-07T21--2018-02-07T23')).toEqual(time(2018, 2, 7, 24));
-        expect(endTimeValue('2017-03-07T21--05-07T23')).toEqual(time(2017, 5, 7, 24));
+        expect(endTimeValue('2017-12-07T21..23')).toEqual(time(2017, 12, 7, 24));
+        expect(endTimeValue('2017-12-07T21..07T23')).toEqual(time(2017, 12, 7, 24));
+        expect(endTimeValue('2017-12-07T21..12-07T23')).toEqual(time(2017, 12, 7, 24));
+        expect(endTimeValue('2017-12-07T21..2017-12-07T23')).toEqual(time(2017, 12, 7, 24));
+        expect(endTimeValue('2017-12-07T21..2018-02-07T23')).toEqual(time(2018, 2, 7, 24));
+        expect(endTimeValue('2017-03-07T21..05-07T23')).toEqual(time(2017, 5, 7, 24));
     });
 
     test('should compute correct second start time', () => {
-        expect(startTimeValue('2017-03-07T13:51:52--54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--53:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--15:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--11T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--05-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--2017-03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
-        expect(startTimeValue('2017-03-07T13:51:52--2018-03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..53:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..15:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..11T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..05-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..2017-03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
+        expect(startTimeValue('2017-03-07T13:51:52..2018-03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 52));
     });
 
     test('should compute correct second end time', () => {
-        expect(endTimeValue('2017-03-07T13:51:52--54')).toEqual(time(2017, 3, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--53:54')).toEqual(time(2017, 3, 7, 13, 53, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--15:51:54')).toEqual(time(2017, 3, 7, 15, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--11T13:51:54')).toEqual(time(2017, 3, 11, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--05-07T13:51:54')).toEqual(time(2017, 5, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--2017-03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
-        expect(endTimeValue('2017-03-07T13:51:52--2018-03-07T13:51:54')).toEqual(time(2018, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..54')).toEqual(time(2017, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..53:54')).toEqual(time(2017, 3, 7, 13, 53, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..15:51:54')).toEqual(time(2017, 3, 7, 15, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..11T13:51:54')).toEqual(time(2017, 3, 11, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..05-07T13:51:54')).toEqual(time(2017, 5, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..2017-03-07T13:51:54')).toEqual(time(2017, 3, 7, 13, 51, 55));
+        expect(endTimeValue('2017-03-07T13:51:52..2018-03-07T13:51:54')).toEqual(time(2018, 3, 7, 13, 51, 55));
     });
 
     test('should compute correct quarter start time', () => {
-        expect(startTimeValue('2017Q1--3')).toEqual(time(2017, 1));
-        expect(startTimeValue('2017Q1--Q3')).toEqual(time(2017, 1));
-        expect(startTimeValue('2017Q1--2017Q3')).toEqual(time(2017, 1));
-        expect(startTimeValue('2017Q2--3')).toEqual(time(2017, 4));
-        expect(startTimeValue('2017Q3--4')).toEqual(time(2017, 7));
-        expect(startTimeValue('2017Q4--2018--Q2')).toEqual(time(2017, 10));
+        expect(startTimeValue('2017Q1..3')).toEqual(time(2017, 1));
+        expect(startTimeValue('2017Q1..Q3')).toEqual(time(2017, 1));
+        expect(startTimeValue('2017Q1..2017Q3')).toEqual(time(2017, 1));
+        expect(startTimeValue('2017Q2..3')).toEqual(time(2017, 4));
+        expect(startTimeValue('2017Q3..4')).toEqual(time(2017, 7));
+        expect(startTimeValue('2017Q4..2018..Q2')).toEqual(time(2017, 10));
     });
 
     test('should compute correct quarter end time', () => {
-        expect(endTimeValue('2017Q1--3')).toEqual(time(2017, 10));
-        expect(endTimeValue('2017Q1--Q3')).toEqual(time(2017, 10));
-        expect(endTimeValue('2017Q1--2017Q3')).toEqual(time(2017, 10));
-        expect(endTimeValue('2017Q2--3')).toEqual(time(2017, 10));
-        expect(endTimeValue('2017Q3--4')).toEqual(time(2018));
-        expect(endTimeValue('2017Q4--2018Q2')).toEqual(time(2018, 7));
+        expect(endTimeValue('2017Q1..3')).toEqual(time(2017, 10));
+        expect(endTimeValue('2017Q1..Q3')).toEqual(time(2017, 10));
+        expect(endTimeValue('2017Q1..2017Q3')).toEqual(time(2017, 10));
+        expect(endTimeValue('2017Q2..3')).toEqual(time(2017, 10));
+        expect(endTimeValue('2017Q3..4')).toEqual(time(2018));
+        expect(endTimeValue('2017Q4..2018Q2')).toEqual(time(2018, 7));
     });
 
     test('should compute correct week start time', () => {
-        expect(startTimeValue('2017W05--07')).toEqual(time(2017, 1, 30));
-        expect(startTimeValue('2017W05--W07')).toEqual(time(2017, 1, 30));
-        expect(startTimeValue('2017W05--2017W07')).toEqual(time(2017, 1, 30));
-        expect(startTimeValue('2010W01--2011W01')).toEqual(time(2010, 1, 4));
+        expect(startTimeValue('2017W05..07')).toEqual(time(2017, 1, 30));
+        expect(startTimeValue('2017W05..W07')).toEqual(time(2017, 1, 30));
+        expect(startTimeValue('2017W05..2017W07')).toEqual(time(2017, 1, 30));
+        expect(startTimeValue('2010W01..2011W01')).toEqual(time(2010, 1, 4));
     });
 
     test('should compute correct week end time', () => {
-        expect(endTimeValue('2017W05--07')).toEqual(time(2017, 2, 20));
-        expect(endTimeValue('2017W05--W07')).toEqual(time(2017, 2, 20));
-        expect(endTimeValue('2017W05--2017W07')).toEqual(time(2017, 2, 20));
-        expect(endTimeValue('2010W01--2012W01')).toEqual(time(2012, 1, 9));
+        expect(endTimeValue('2017W05..07')).toEqual(time(2017, 2, 20));
+        expect(endTimeValue('2017W05..W07')).toEqual(time(2017, 2, 20));
+        expect(endTimeValue('2017W05..2017W07')).toEqual(time(2017, 2, 20));
+        expect(endTimeValue('2010W01..2012W01')).toEqual(time(2012, 1, 9));
     });
 
     test('should compute correct century start time', () => {
-        expect(startTimeValue('C20--22')).toEqual(time(1901));
-        expect(startTimeValue('C20--C22')).toEqual(time(1901));
-        expect(startTimeValue('C5--C20')).toEqual(time(401));
-        expect(startTimeValue('C5--20')).toEqual(time(401));
+        expect(startTimeValue('C20..22')).toEqual(time(1901));
+        expect(startTimeValue('C20..C22')).toEqual(time(1901));
+        expect(startTimeValue('C5..C20')).toEqual(time(401));
+        expect(startTimeValue('C5..20')).toEqual(time(401));
     });
 
     test('should compute correct century end time', () => {
-        expect(endTimeValue('C20--22')).toEqual(time(2201));
-        expect(endTimeValue('C20--C22')).toEqual(time(2201));
-        expect(endTimeValue('C5--C20')).toEqual(time(2001));
-        expect(endTimeValue('C5--20')).toEqual(time(2001));
+        expect(endTimeValue('C20..22')).toEqual(time(2201));
+        expect(endTimeValue('C20..C22')).toEqual(time(2201));
+        expect(endTimeValue('C5..C20')).toEqual(time(2001));
+        expect(endTimeValue('C5..20')).toEqual(time(2001));
     });
 
     test('should compute correct decade start time', () => {
-        expect(startTimeValue('D201--202')).toEqual(time(2010));
-        expect(startTimeValue('D201--D202')).toEqual(time(2010));
-        expect(startTimeValue('D10--200')).toEqual(time(100));
-        expect(startTimeValue('D10--D200')).toEqual(time(100));
-        expect(startTimeValue('D1--200')).toEqual(time(10));
-        expect(startTimeValue('D1--D200')).toEqual(time(10));
+        expect(startTimeValue('D201..202')).toEqual(time(2010));
+        expect(startTimeValue('D201..D202')).toEqual(time(2010));
+        expect(startTimeValue('D10..200')).toEqual(time(100));
+        expect(startTimeValue('D10..D200')).toEqual(time(100));
+        expect(startTimeValue('D1..200')).toEqual(time(10));
+        expect(startTimeValue('D1..D200')).toEqual(time(10));
     });
 
     test('should compute correct decade end time', () => {
-        expect(endTimeValue('D201--202')).toEqual(time(2030));
-        expect(endTimeValue('D201--D202')).toEqual(time(2030));
-        expect(endTimeValue('D10--200')).toEqual(time(2010));
-        expect(endTimeValue('D10--D200')).toEqual(time(2010));
-        expect(endTimeValue('D1--200')).toEqual(time(2010));
-        expect(endTimeValue('D1--D200')).toEqual(time(2010));
+        expect(endTimeValue('D201..202')).toEqual(time(2030));
+        expect(endTimeValue('D201..D202')).toEqual(time(2030));
+        expect(endTimeValue('D10..200')).toEqual(time(2010));
+        expect(endTimeValue('D10..D200')).toEqual(time(2010));
+        expect(endTimeValue('D1..200')).toEqual(time(2010));
+        expect(endTimeValue('D1..D200')).toEqual(time(2010));
     });
 
     test('should compute correct millennium start time', () => {
-        expect(startTimeValue('M1--3')).toEqual(time(1));
-        expect(startTimeValue('M1--M3')).toEqual(time(1));
-        expect(startTimeValue('M2--3')).toEqual(time(1001));
-        expect(startTimeValue('M2--M3')).toEqual(time(1001));
+        expect(startTimeValue('M1..3')).toEqual(time(1));
+        expect(startTimeValue('M1..M3')).toEqual(time(1));
+        expect(startTimeValue('M2..3')).toEqual(time(1001));
+        expect(startTimeValue('M2..M3')).toEqual(time(1001));
     });
 
     test('should compute correct millennium end time', () => {
-        expect(endTimeValue('M1--3')).toEqual(time(3001));
-        expect(endTimeValue('M1--M3')).toEqual(time(3001));
-        expect(endTimeValue('M2--3')).toEqual(time(3001));
-        expect(endTimeValue('M2--M3')).toEqual(time(3001));
+        expect(endTimeValue('M1..3')).toEqual(time(3001));
+        expect(endTimeValue('M1..M3')).toEqual(time(3001));
+        expect(endTimeValue('M2..3')).toEqual(time(3001));
+        expect(endTimeValue('M2..M3')).toEqual(time(3001));
     });
 });
