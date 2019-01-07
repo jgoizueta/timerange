@@ -217,6 +217,11 @@ module.exports = function parseISO (iso) {
     }
     let [start, end] = startParser.parse(isoStart);
     if (isoEnd && isoEnd !== isoStart) {
+        if (isoStart.match(/^[A-Z]\d+$/) && isoEnd.match(/^\d+$/)) {
+            isoEnd = isoStart[0] + isoEnd;
+        } else if (isoEnd.length < isoStart.length) {
+            isoEnd = isoStart.slice(0, isoStart.length - isoEnd.length) + isoEnd;
+        }
         const endParser = findParser(isoEnd);
         if (!endParser) {
             throw new Error(`No date parser found for ${iso}`);
