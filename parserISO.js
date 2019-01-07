@@ -1,3 +1,37 @@
+// TODO: constants.js
+
+const TIME_LEVELS = ['year', 'month', 'day', 'hour', 'minute', 'second'];
+const TIME_STARTS = [1, 1, 1, 0, 0, 0];
+const YEAR_LEVEL = 0;
+const MONTH_LEVEL = 1;
+const DAY_LEVEL = 2;
+const HOUR_LEVEL = 3;
+const MINUTE_LEVEL = 4;
+const SECOND_LEVEL = 5;
+const RESOLUTION_LEVEL = {
+  'millennium': TIME_LEVELS.indexOf('year'),
+  'century': TIME_LEVELS.indexOf('year'),
+  'decade': TIME_LEVELS.indexOf('year'),
+  'year': TIME_LEVELS.indexOf('year'),
+  'semester': TIME_LEVELS.indexOf('month'),
+  'trimester': TIME_LEVELS.indexOf('month'),
+  'quarter': TIME_LEVELS.indexOf('month'),
+  'month': TIME_LEVELS.indexOf('month'),
+  'week': TIME_LEVELS.indexOf('day'),
+  'day': TIME_LEVELS.indexOf('day'),
+  'hour': TIME_LEVELS.indexOf('hour'),
+  'minute': TIME_LEVELS.indexOf('minute'),
+  'second': TIME_LEVELS.indexOf('second')
+};
+
+const MS_PER_DAY = 86400000;
+const MS_PER_HOUR = 3600000;
+const MS_PER_MINUTE = 60000;
+const MS_PER_S = 1000;
+
+ABBR_INTERVAL_SEP = '..';
+ISO_INTERVAL_SEPS = [ '--', '/' ];
+ISO_INTERVAL_SEP = '/';
 class IsoParser {
     constructor (format) {
         this._format = format;
@@ -46,7 +80,8 @@ class YMDHMSParser extends IsoParser {
         } else {
             end[i - 1] = Number(end[i - 1]) + 1;
         }
-        return [ fieldsFromMatch(start), fieldsFromMatch(end) ];
+        const resolution = TIME_LEVELS[Math.max(i, 2) - 2];
+        return { start: fieldsFromMatch(start), end: fieldsFromMatch(end), resolution };
     }
 }
 
@@ -58,10 +93,11 @@ class MillenniumParser extends IsoParser {
         const match = this.check(iso);
         const m = Number(match[1]);
         const year = m => (m - 1) * 1000 + 1;
-        return [
-            dateFields({ year: year(m) }),
-            dateFields({ year: year(m + 1) })
-        ];
+        return {
+            start: dateFields({ year: year(m) }),
+            end: dateFields({ year: year(m + 1) }),
+            resolution: 'millennium'
+        };
     }
 }
 
@@ -73,10 +109,11 @@ class CenturyParser extends IsoParser {
         const match = this.check(iso);
         const c = Number(match[1]);
         const year = c => (c - 1) * 100 + 1;
-        return [
-            dateFields({ year: year(c) }),
-            dateFields({ year: year(c + 1) })
-        ];
+        return {
+            start: dateFields({ year: year(c) }),
+            end: dateFields({ year: year(c + 1) }),
+            resolution: 'century'
+        };
     }
 }
 
@@ -88,10 +125,11 @@ class DecadeParser extends IsoParser {
         const match = this.check(iso);
         const d = Number(match[1]);
         const year = d => d * 10;
-        return [
-            dateFields({ year: year(d) }),
-            dateFields({ year: year(d + 1) })
-        ];
+        return {
+            start: dateFields({ year: year(d) }),
+            end: dateFields({ year: year(d + 1) }),
+            resolution: 'decade'
+        };
     }
 }
 
@@ -104,10 +142,11 @@ class SemesterParser extends IsoParser {
         const year = Number(match[1]);
         const s = Number(match[2]);
         const month = s => (s - 1) * 6 + 1;
-        return [
-            dateFields({ year, month: month(s) }),
-            dateFields({ year, month: month(s + 1) })
-        ];
+        return {
+            start: dateFields({ year, month: month(s) }),
+            end: dateFields({ year, month: month(s + 1) }),
+            resolution: 'semester'
+        };
     }
 }
 
@@ -120,10 +159,11 @@ class TrimesterParser extends IsoParser {
         const year = Number(match[1]);
         const t = Number(match[2]);
         const month = t => (t - 1) * 4 + 1;
-        return [
-            dateFields({ year, month: month(t) }),
-            dateFields({ year, month: month(t + 1) })
-        ];
+        return {
+            start: dateFields({ year, month: month(t) }),
+            end: dateFields({ year, month: month(t + 1) }),
+            resolution: 'trimester'
+        };
     }
 }
 
@@ -136,10 +176,11 @@ class QuarterParser extends IsoParser {
         const year = Number(match[1]);
         const q = Number(match[2]);
         const month = q => (q - 1) * 3 + 1;
-        return [
-            dateFields({ year, month: month(q) }),
-            dateFields({ year, month: month(q + 1) })
-        ];
+        return {
+            start: dateFields({ year, month: month(q) }),
+            end: dateFields({ year, month: month(q + 1) }),
+            resolution: 'quarter'
+        };
     }
 }
 
@@ -177,10 +218,11 @@ class WeekParser extends IsoParser {
             month: date.getMonth() + 1,
             day: date.getDate()
         });
-        return [
-            dateFields(fields(start)),
-            dateFields(fields(end))
-        ];
+        return {
+            start: dateFields(fields(start)),
+            end: dateFields(fields(end)),
+            resolution: 'week'
+        };
     }
 }
 
@@ -198,10 +240,6 @@ const isoFormats = [
 function findParser (iso) {
     return isoFormats.find(parser => parser.check(iso));
 }
-
-ABBR_INTERVAL_SEP = '..';
-ISO_INTERVAL_SEPS = [ '--', '/' ];
-ISO_INTERVAL_SEP = '/';
 
 module.exports = function parseISO (iso) {
     iso = iso || '';
@@ -224,7 +262,7 @@ module.exports = function parseISO (iso) {
     if (!startParser) {
         throw new Error(`No date parser found for ${iso}`);
     }
-    let [start, end] = startParser.parse(isoStart);
+    let { start, end, resolution } = startParser.parse(isoStart);
     if (isoEnd && isoEnd !== isoStart) {
         if (isoStart.match(/^[A-Z]\d+$/) && isoEnd.match(/^\d+$/)) {
             isoEnd = isoStart[0] + isoEnd;
@@ -235,8 +273,8 @@ module.exports = function parseISO (iso) {
         if (!endParser) {
             throw new Error(`No date parser found for ${iso}`);
         }
-        const [endStart, endEnd] = endParser.parse(isoEnd);
-        end = abbr ? endEnd : endStart;
+        endPeriod = endParser.parse(isoEnd);
+        end = abbr ? endPeriod.end : endPeriod.start;
     }
-    return [start, end];
+    return { start, end, resolution };
 }

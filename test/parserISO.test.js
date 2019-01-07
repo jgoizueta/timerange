@@ -9,11 +9,11 @@ function timeValue (parsed) {
 }
 
 function startTimeValue(iso) {
-    return timeValue(parserISO(iso)[0]);
+    return timeValue(parserISO(iso).start);
 }
 
 function endTimeValue (iso) {
-    return timeValue(parserISO(iso)[1]);
+    return timeValue(parserISO(iso).end);
 }
 
 describe('parseISO on single calendar unit', () => {

@@ -1,3 +1,5 @@
+// TODO: constants.js
+
 const TIME_LEVELS = ['year', 'month', 'day', 'hour', 'minute', 'second'];
 const TIME_STARTS = [1, 1, 1, 0, 0, 0];
 const YEAR_LEVEL = 0;
@@ -26,6 +28,10 @@ const MS_PER_DAY = 86400000;
 const MS_PER_HOUR = 3600000;
 const MS_PER_MINUTE = 60000;
 const MS_PER_S = 1000;
+
+ABBR_INTERVAL_SEP = '..';
+ISO_INTERVAL_SEPS = [ '--', '/' ];
+ISO_INTERVAL_SEP = '/';
 
 function startLevel (parsed) {
     let i = TIME_LEVELS.length - 1;
@@ -127,10 +133,6 @@ function commonPrefixLength(s1, s2) {
     }
     return l;
 }
-
-ABBR_INTERVAL_SEP = '..';
-ISO_INTERVAL_SEPS = [ '--', '/' ];
-ISO_INTERVAL_SEP = '/';
 
 function isDigit(chr) {
     return !!(chr.match(/^\d$/));
