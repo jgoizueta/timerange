@@ -107,11 +107,6 @@ function normDate(...components) {
     return _normDate(false, components);
 }
 
-function completeDate(...components) {
-    // normDate(...components) + TIME_STARTS.slice(components.length - TIME_STARTS.length)
-    return _normDate(true, components);
-}
-
 function inc(components, level, delta = 1) {
     copy = components.slice();
     copy[level] += delta;
