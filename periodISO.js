@@ -30,13 +30,29 @@ const UNIT_LENGTH = {
     year: 1,
     semester: 6,
     trimester: 4,
-    querter: 3,
+    quarter: 3,
     month: 1,
     week: 7,
     day: 1,
     hour: 1,
     minute: 1,
     second: 1
+};
+
+const ISO_FORMATS = {
+    millennium: isoMillennium,
+    century: isoCentury,
+    decade: isoDecade,
+    year: isoYear,
+    semester: isoSemester,
+    trimester: isoTrimester,
+    quarter: isoQuarter,
+    month: isoMonth,
+    // week: isoWeek,
+    day: isoDay,
+    hour: isoHour,
+    minute: isoMinute,
+    second: isoSecond
 };
 
 const MS_PER_DAY = 86400000;
@@ -277,6 +293,17 @@ function isoSecond(y, m, d, h, mn, s) {
     return `${pad(y, 4)}-${pad(m, 2)}-${pad(d, 2)}T${pad(h, 2)}:${pad(mn, 2)}:${pad(s, 2)}`;
 }
 
+const RESOLUTION_BASE = {
+    millennium: 1,
+    century: 1,
+    decade: 0,
+    year: 0,
+    semester: 1,
+    trimester: 1,
+    quarter: 1,
+    month: 0
+};
+
 class YearsPeriod extends Period {
     level () {
         return YEAR;
@@ -286,30 +313,22 @@ class YearsPeriod extends Period {
         const y1 = period.start[0];
         const y2 = period.end[0];
         let duration = y2 - y1;
-        let resolution = 'year';
+        let resolution = null;
         let isoFirst, isoLast, isoNext;
-        if (duration % 1000 === 0 && ((y1 - 1) % 1000) === 0 && this._isForced(forcedResolution, 'millennium')) {
-            duration /= 1000;
-            resolution = 'millennium';
-            isoFirst = isoMillennium(y1);
-            isoNext = isoMillennium(y2);
-            isoLast = duration === 1 ? isoFirst : isoMillennium(y2 - 1000);
-        } else if (duration % 100 === 0 && ((y1 - 1) % 100) === 0 && this._isForced(forcedResolution, 'century')) {
-            duration /= 100;
-            resolution = 'century';
-            isoFirst = isoCentury(y1);
-            isoNext = isoCentury(y2);
-            isoLast = duration === 1 ? isoFirst : isoCentury(y2 - 100);
-        } else if (duration % 10 === 0 && (y1 % 10) === 0 && this._isForced(forcedResolution, 'decade')) {
-            duration /= 10;
-            resolution = 'decade';
-            isoFirst = isoDecade(y1);
-            isoNext = isoDecade(y2);
-            isoLast = duration === 1 ? isoFirst : isoDecade(y2 - 10);
-        } else {
-            isoFirst = isoYear(y1);
-            isoNext = isoYear(y2);
-            isoLast = duration === 1 ? isoFirst : isoYear(y2 - 1);
+        const tryResolutions = Object.keys(RESOLUTION_LEVEL).filter(res => RESOLUTION_LEVEL[res] === YEAR);
+        for (let tryResolution of tryResolutions) {
+            const n = UNIT_LENGTH[tryResolution];
+            const base = RESOLUTION_BASE[tryResolution];
+            const checkStart = y => ((y - base) % n) === 0;
+            if (duration % n === 0 && checkStart(y1) && this._isForced(forcedResolution, tryResolution)) {
+                duration /= n;
+                resolution = tryResolution;
+                const isoFmt = ISO_FORMATS[resolution];
+                isoFirst = isoFmt(y1);
+                isoNext = isoFmt(y2);
+                isoLast = duration === 1 ? isoFirst : isoFmt(y2 - n);
+                break;
+            }
         }
         return { duration, resolution, isoFirst, isoLast, isoNext };
     }
@@ -320,34 +339,26 @@ class MonthsPeriod extends Period {
         return MONTH;
     }
 
-    _reduce (period) {
+    _reduce (period, forcedResolution) {
         const [y1, m1] = period.start;
         const [y2, m2] = period.end;
         let duration = 12 * y2 + m2 - 12 * y1 - m1;
-        let resolution = 'month';
+        let resolution = null;
         let isoFirst, isoLast, isoNext;
-        if (duration % 6 === 0 && ((m1 - 1) % 6) === 0) {
-            duration /= 6;
-            resolution = 'semester';
-            isoFirst = isoSemester(y1, m1);
-            isoNext = isoSemester(y2, m2);
-            isoLast = duration === 1 ? isoFirst : isoSemester(...normDate(y2, m2 - 6));
-        } else if (duration % 4 === 0 && ((m1 - 1) % 4) === 0) {
-            duration /= 4;
-            resolution = 'trimester';
-            isoFirst = isoTrimester(y1, m1);
-            isoNext = isoTrimester(y2, m2);
-            isoLast = duration === 1 ? isoFirst : isoTrimester(...normDate(y2, m2 - 4));
-        } else if (duration % 3 === 0 && ((m1 - 1) % 3) === 0) {
-            duration /= 3;
-            resolution = 'quarter';
-            isoFirst = isoQuarter(y1, m1);
-            isoNext = isoQuarter(y2, m2);
-            isoLast = duration === 1 ? isoFirst : isoQuarter(...normDate(y2, m2 - 3));
-        } else {
-            isoFirst = isoMonth(y1, m1);
-            isoNext = isoMonth(y2, m2);
-            isoLast = duration === 1 ? isoFirst : isoMonth(...normDate(y2, m2 - 1));
+        const tryResolutions = Object.keys(RESOLUTION_LEVEL).filter(res => RESOLUTION_LEVEL[res] === MONTH);
+        for (let tryResolution of tryResolutions) {
+            const n = UNIT_LENGTH[tryResolution];
+            const base = RESOLUTION_BASE[tryResolution];
+            const checkStart = m => ((m - base) % n) === 0;
+            if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, tryResolution)) {
+                duration /= n;
+                resolution = tryResolution
+                const isoFmt = ISO_FORMATS[resolution];
+                isoFirst = isoFmt(y1, m1);
+                isoNext = isoFmt(y2, m2);
+                isoLast = duration === 1 ? isoFirst : isoFmt(...inc(period.end, MONTH, -n));
+                break;
+            }
         }
         return { duration, resolution, isoFirst, isoLast, isoNext };
     }
