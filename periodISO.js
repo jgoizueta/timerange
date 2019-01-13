@@ -439,11 +439,11 @@ class SecondsPeriod extends Period {
 
     _reduce (period) {
         const duration = Math.round((period.endValue - period.startValue) / MS_PER_S);
-        let isoFirst = isoSecond(period.t1.year, period.t1.month, period.t1.day, period.t1.hour, period.t1.minute, period.t1.second);
-        let isoNext = isoSecond(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute, period.t2.second);
+        let isoFirst = isoSecond(...period.start);
+        let isoNext = isoSecond(...period.end);
         const isoLast = (duration === 1)
             ? isoFirst
-            : isoSecond(...normDate(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute, period.t2.second - 1));
+            : isoSecond(...inc(period.end, SECOND, -1));
         return { duration, resolution: 'second', isoFirst, isoLast, isoNext };
     }
 }
