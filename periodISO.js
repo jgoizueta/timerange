@@ -8,49 +8,49 @@ const MINUTE = TIME_LEVELS.indexOf('minute');
 const SECOND = TIME_LEVELS.indexOf('second');
 
 const RESOLUTION_LEVEL = {
-  'millennium': YEAR,
-  'century': YEAR,
-  'decade': YEAR,
-  'year': YEAR,
-  'semester': MONTH,
-  'trimester': MONTH,
-  'quarter': MONTH,
-  'month': MONTH,
-  'week': DAY,
-  'day': DAY,
-  'hour': HOUR,
-  'minute': MINUTE,
-  'second': SECOND
+    millennium: YEAR,
+    century: YEAR,
+    decade: YEAR,
+    year: YEAR,
+    semester: MONTH,
+    trimester: MONTH,
+    quarter: MONTH,
+    month: MONTH,
+    week: DAY,
+    day: DAY,
+    hour: HOUR,
+    minute: MINUTE,
+    second: SECOND
 };
 
 const UNIT_LENGTH = {
-    'millenium': 1000,
-    'century': 100,
-    'decade': 10,
-    'year': 1,
-    'semester': 6,
-    'trimester': 4,
-    'querter': 3,
-    'month': 1,
-    'week': 7,
-    'day': 1,
-    'hour': 1,
-    'minute': 1,
-    'second': 1
-}
+    millennium: 1000,
+    century: 100,
+    decade: 10,
+    year: 1,
+    semester: 6,
+    trimester: 4,
+    querter: 3,
+    month: 1,
+    week: 7,
+    day: 1,
+    hour: 1,
+    minute: 1,
+    second: 1
+};
 
 const MS_PER_DAY = 86400000;
 const MS_PER_HOUR = 3600000;
 const MS_PER_MINUTE = 60000;
 const MS_PER_S = 1000;
 
-ABBR_INTERVAL_SEP = '..';
-ISO_INTERVAL_SEPS = [ '--', '/' ];
-ISO_INTERVAL_SEP = '/';
+const ABBR_INTERVAL_SEP = '..';
+const ISO_INTERVAL_SEPS = [ '--', '/' ];
+const ISO_INTERVAL_SEP = '/';
 
-function startLevel (parsed) {
+function startLevel (components) {
     let i = TIME_LEVELS.length - 1;
-    while (i > 0 && parsed[TIME_LEVELS[i]] === TIME_STARTS[i]) {
+    while (i > 0 && components[i] === TIME_STARTS[i]) {
         --i;
     }
     return i;
@@ -66,13 +66,13 @@ function pad (x, n) {
 
 function dateValue(...components) {
     if (components.length > 1) {
-        components = [components[0], components[1] - 1, ...components.slice(2)]
+        components = [components[0], components[1] - 1, ...components.slice(2)];
     }
     return Date.UTC(...components);
 }
 
 function utcDate(...components) {
-    return new Date(dateValue(...components));
+    return msToDate(dateValue(...components));
 }
 
 function* take(n, iterable) {
@@ -94,10 +94,10 @@ function* dateComponents (d) {
 
 function valueComponents (dateValue) {
     const date = msToDate(dateValue);
-    return [...dateComponents(date)]
+    return [...dateComponents(date)];
 }
 
-function _normDate(allComponents = false, components) {
+function _normDate(allComponents, components) {
     const date = utcDate(...components);
     const n = allComponents ? TIME_LEVELS.size : components.length;
     return [...take(n, dateComponents(date))];
@@ -108,9 +108,9 @@ function normDate(...components) {
 }
 
 function inc(components, level, delta = 1) {
-    copy = components.slice();
+    const copy = components.slice();
     copy[level] += delta;
-    return _normDate(...copy);
+    return normDate(...copy);
 }
 
 function baseDuration(duration, resolution) {
@@ -120,19 +120,7 @@ function baseDuration(duration, resolution) {
 }
 
 function addToDateValue(value, duration, resolution) {
-    return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)))
-}
-
-function parsedValue (dateValue) {
-    const components = valueComponents(dateValue);
-    return {
-        year: components[YEAR],
-        month: components[MONTH],
-        day: components[DAY],
-        hour: components[HOUR],
-        minute: components[MINUTE],
-        second: components[SECOND]
-    };
+    return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)));
 }
 
 function isoDow (y, m, d) {
@@ -227,7 +215,7 @@ class Period {
         }
         return {
             duration, resolution, iso: isoInterval(isoFirst, isoNext), abbr: abbrInterval(isoFirst, isoLast)
-        }
+        };
     }
     _isForced (forcedResolution, resolution) {
         return !forcedResolution || forcedResolution === resolution;
@@ -250,7 +238,7 @@ function isoDecade(year) {
 }
 
 function isoYear(y) {
-    return pad(y, 4)
+    return pad(y, 4);
 }
 
 function isoSemester(y, m) {
@@ -295,8 +283,8 @@ class YearsPeriod extends Period {
     }
 
     _reduce (period, forcedResolution) {
-        const y1 = period.t1.year;
-        const y2 = period.t2.year;
+        const y1 = period.start[0];
+        const y2 = period.end[0];
         let duration = y2 - y1;
         let resolution = 'year';
         let isoFirst, isoLast, isoNext;
@@ -333,10 +321,8 @@ class MonthsPeriod extends Period {
     }
 
     _reduce (period) {
-        const y1 = period.t1.year;
-        const y2 = period.t2.year;
-        const m1 = period.t1.month;
-        const m2 = period.t2.month;
+        const [y1, m1] = period.start;
+        const [y2, m2] = period.end;
         let duration = 12 * y2 + m2 - 12 * y1 - m1;
         let resolution = 'month';
         let isoFirst, isoLast, isoNext;
@@ -378,26 +364,26 @@ class DaysPeriod extends Period {
     }
 
     _reduce (period) {
-        let duration = Math.round((period.v2 - period.v1) / MS_PER_DAY);
+        let duration = Math.round((period.endValue - period.startValue) / MS_PER_DAY);
         let resolution = 'day';
         let isoFirst, isoLast, isoNext;
         if (duration % 7 === 0) {
-            let y = period.t1.year;
-            const v0 = Date.UTC(y, 0, 1);
-            let yd = yearDay(y, period.v1);
+            const y = period.start[0];
+            const yd = yearDay(y, period.startValue);
             const [iy, w] = yearWeek(y, yd);
             if (iy && w) {
                 duration /= 7;
                 resolution = 'week';
                 isoFirst = isoWeek(iy, w);
-                isoNext = isoWeek(...yearWeek(period.t2.year, yearDay(period.t2.year, period.v2)));
+                const y2 = period.end[0];
+                isoNext = isoWeek(...yearWeek(y2, yearDay(y2, period.endValue)));
                 isoLast = duration === 1 ? isoFirst : isoWeek(...yearWeek(y, yd + (duration - 1) * 7));
             }
         }
         if (!isoFirst) {
-            isoFirst = isoDay(period.t1.year, period.t1.month, period.t1.day);
-            isoNext = isoDay(period.t2.year, period.t2.month, period.t2.day);
-            isoLast = duration === 1 ? isoFirst : isoDay(...normDate(period.t2.year, period.t2.month, period.t2.day - 1));
+            isoFirst = isoDay(...period.start);
+            isoNext = isoDay(...period.end);
+            isoLast = duration === 1 ? isoFirst : isoDay(...inc(period.end, DAY, -1));
         }
         return { duration, resolution, isoFirst, isoLast, isoNext };
     }
@@ -409,12 +395,12 @@ class HoursPeriod extends Period {
     }
 
     _reduce (period) {
-        const duration = Math.round((period.v2 - period.v1) / MS_PER_HOUR);
-        const isoFirst = isoHour(period.t1.year, period.t1.month, period.t1.day, period.t1.hour);
-        const isoNext = isoHour(period.t2.year, period.t2.month, period.t2.day, period.t2.hour);
+        const duration = Math.round((period.endValue - period.startValue) / MS_PER_HOUR);
+        const isoFirst = isoHour(...period.start);
+        const isoNext = isoHour(...period.end);
         const isoLast = (duration === 1)
             ? isoFirst
-            : isoHour(...normDate(period.t2.year, period.t2.month, period.t2.day, period.t2.hour - 1));
+            : isoHour(...inc(period.end, HOUR, -1));
         return { duration, resolution: 'hour', isoFirst, isoLast, isoNext };
     }
 }
@@ -425,12 +411,12 @@ class MinutesPeriod extends Period {
     }
 
     _reduce (period) {
-        const duration = Math.round((period.v2 - period.v1) / MS_PER_MINUTE);
-        const isoFirst = isoMinute(period.t1.year, period.t1.month, period.t1.day, period.t1.hour, period.t1.minute);
-        const isoNext = isoMinute(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute);
+        const duration = Math.round((period.endValue - period.startValue) / MS_PER_MINUTE);
+        const isoFirst = isoMinute(...period.start);
+        const isoNext = isoMinute(...period.end);
         const isoLast = (duration === 1)
             ? isoFirst
-            : isoMinute(...normDate(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute - 1));
+            : isoMinute(...inc(period.end, MINUTE, -1));
         return { duration, resolution: 'minute', isoFirst, isoLast, isoNext };
     }
 }
@@ -441,7 +427,7 @@ class SecondsPeriod extends Period {
     }
 
     _reduce (period) {
-        const duration = Math.round((period.v2 - period.v1) / MS_PER_S);
+        const duration = Math.round((period.endValue - period.startValue) / MS_PER_S);
         let isoFirst = isoSecond(period.t1.year, period.t1.month, period.t1.day, period.t1.hour, period.t1.minute, period.t1.second);
         let isoNext = isoSecond(period.t2.year, period.t2.month, period.t2.day, period.t2.hour, period.t2.minute, period.t2.second);
         const isoLast = (duration === 1)
@@ -460,13 +446,36 @@ const periodHandlers = [
     new SecondsPeriod()
 ];
 
+class StartEndPeriod {
+    constructor (startValue, endValue) {
+        this.startValue = startValue;
+        this.endValue = endValue;
+        this._start = null;
+        this._end = null;
+    }
+    static fromValues (startValue, endValue) {
+        return new StartEndPeriod(startValue, endValue);
+    }
+    get start () {
+        if (!this._start) {
+            this._start = valueComponents(this.startValue);
+        }
+        return this._start;
+    }
+    get end () {
+        if (!this._end) {
+            this._end = valueComponents(this.endValue);
+        }
+        return this._end;
+    }
+    get minBreakLevel () {
+        return Math.max(startLevel(this.start), startLevel(this.end));
+    }
+}
+
 module.exports = function periodISO (v1, v2, resolution=null, onlyCalendarUnit=true) {
-    const t2 = parsedValue(v2);
-    const t1 = parsedValue(v1);
-    const l1 = startLevel(t1);
-    const l2 = startLevel(t2);
-    const period = { v1, v2, t1, t2 };
-    let level = Math.max(l1, l2);
+    const period = StartEndPeriod.fromValues(v1, v2);
+    let level = period.minBreakLevel;
 
     if (resolution) {
         const rLevel = RESOLUTION_LEVEL[resolution];
@@ -478,6 +487,6 @@ module.exports = function periodISO (v1, v2, resolution=null, onlyCalendarUnit=t
 
     const handler = periodHandlers.find(handler => handler.check(level));
     return handler.range(period, resolution, onlyCalendarUnit);
-}
+};
 
 module.exports.addPeriod = addToDateValue;
