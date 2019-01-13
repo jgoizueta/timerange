@@ -5,7 +5,7 @@ function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
 }
 
 function timeValue (parsed) {
-    return Date.UTC(parsed.year, parsed.month - 1, parsed.day, parsed.hour, parsed.minute, parsed.second);
+    return time(...parsed);
 }
 
 function startTimeValue(iso) {

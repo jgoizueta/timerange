@@ -352,7 +352,7 @@ class MonthsPeriod extends Period {
             const checkStart = m => ((m - base) % n) === 0;
             if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, tryResolution)) {
                 duration /= n;
-                resolution = tryResolution
+                resolution = tryResolution;
                 const isoFmt = ISO_FORMATS[resolution];
                 isoFirst = isoFmt(y1, m1);
                 isoNext = isoFmt(y2, m2);

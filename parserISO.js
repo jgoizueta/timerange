@@ -1,37 +1,56 @@
-// TODO: constants.js
+// FIXME: Temporarily replicated from periodISO.js ---------------------------
 
 const TIME_LEVELS = ['year', 'month', 'day', 'hour', 'minute', 'second'];
 const TIME_STARTS = [1, 1, 1, 0, 0, 0];
-const YEAR_LEVEL = 0;
-const MONTH_LEVEL = 1;
-const DAY_LEVEL = 2;
-const HOUR_LEVEL = 3;
-const MINUTE_LEVEL = 4;
-const SECOND_LEVEL = 5;
-const RESOLUTION_LEVEL = {
-  'millennium': TIME_LEVELS.indexOf('year'),
-  'century': TIME_LEVELS.indexOf('year'),
-  'decade': TIME_LEVELS.indexOf('year'),
-  'year': TIME_LEVELS.indexOf('year'),
-  'semester': TIME_LEVELS.indexOf('month'),
-  'trimester': TIME_LEVELS.indexOf('month'),
-  'quarter': TIME_LEVELS.indexOf('month'),
-  'month': TIME_LEVELS.indexOf('month'),
-  'week': TIME_LEVELS.indexOf('day'),
-  'day': TIME_LEVELS.indexOf('day'),
-  'hour': TIME_LEVELS.indexOf('hour'),
-  'minute': TIME_LEVELS.indexOf('minute'),
-  'second': TIME_LEVELS.indexOf('second')
-};
 
-const MS_PER_DAY = 86400000;
-const MS_PER_HOUR = 3600000;
-const MS_PER_MINUTE = 60000;
-const MS_PER_S = 1000;
+const ABBR_INTERVAL_SEP = '..';
+const ISO_INTERVAL_SEPS = [ '--', '/' ];
+const ISO_INTERVAL_SEP = '/';
 
-ABBR_INTERVAL_SEP = '..';
-ISO_INTERVAL_SEPS = [ '--', '/' ];
-ISO_INTERVAL_SEP = '/';
+function msToDate (msEpoch) {
+    return new Date(msEpoch);
+}
+
+function dateValue(...components) {
+    if (components.length > 1) {
+        components = [components[0], components[1] - 1, ...components.slice(2)];
+    }
+    return Date.UTC(...components);
+}
+
+function utcDate(...components) {
+    return msToDate(dateValue(...components));
+}
+
+function* take(n, iterable) {
+    for (let x of iterable) {
+        if (n <= 0) return;
+        n--;
+        yield x;
+    }
+}
+
+function* dateComponents (d) {
+    yield d.getUTCFullYear();
+    yield d.getUTCMonth() + 1;
+    yield d.getUTCDate();
+    yield d.getUTCHours();
+    yield d.getUTCMinutes();
+    yield d.getUTCSeconds();
+}
+
+function _normDate(allComponents, components) {
+    const date = utcDate(...components);
+    const n = allComponents ? TIME_LEVELS.size : components.length;
+    return [...take(n, dateComponents(date))];
+}
+
+// ---------------------------------------------------------------------------
+
+function fullDate(...components) {
+    // normDate(...components) + TIME_STARTS.slice(components.length - TIME_STARTS.length)
+    return _normDate(true, components);
+}
 class IsoParser {
     constructor (format) {
         this._format = format;
@@ -45,31 +64,13 @@ function fieldDefault (value, defaultValue) {
     return (value === undefined) ? defaultValue : Number(value);
 }
 
-function dateFields (fields) {
-    return {
-        year: fieldDefault(fields.year, 1),
-        month: fieldDefault(fields.month, 1),
-        day: fieldDefault(fields.day, 1),
-        hour: fieldDefault(fields.hour, 0),
-        minute: fieldDefault(fields.minute, 0),
-        second: fieldDefault(fields.second, 0)
-    };
-}
-
-function fieldsFromMatch (match) {
-    return dateFields({
-        year: match[1],
-        month: match[2],
-        day: match[3],
-        hour: match[4],
-        minute: match[5],
-        second: match[6]
-    });
+function componentsFromMatch (match) {
+    return match.slice(1).map((v, i) => fieldDefault(v, TIME_STARTS[i]));
 }
 
 class YMDHMSParser extends IsoParser {
     constructor () {
-        super(/^(\d\d\d\d)(?:\-?(\d\d)(?:\-?(\d\d)(?:[T\s]?(\d\d)(?:\:(\d\d)(?:\:(\d\d))?)?)?)?)?$/);
+        super(/^(\d\d\d\d)(?:-?(\d\d)(?:-?(\d\d)(?:[T\s]?(\d\d)(?::(\d\d)(?::(\d\d))?)?)?)?)?$/);
     }
     parse (iso) {
         const start = this.check(iso) || [];
@@ -81,7 +82,7 @@ class YMDHMSParser extends IsoParser {
             end[i - 1] = Number(end[i - 1]) + 1;
         }
         const resolution = TIME_LEVELS[Math.max(i, 2) - 2];
-        return { start: fieldsFromMatch(start), end: fieldsFromMatch(end), resolution };
+        return { start: componentsFromMatch(start), end: componentsFromMatch(end), resolution };
     }
 }
 
@@ -94,8 +95,8 @@ class MillenniumParser extends IsoParser {
         const m = Number(match[1]);
         const year = m => (m - 1) * 1000 + 1;
         return {
-            start: dateFields({ year: year(m) }),
-            end: dateFields({ year: year(m + 1) }),
+            start: fullDate(year(m)),
+            end: fullDate(year(m + 1)),
             resolution: 'millennium'
         };
     }
@@ -110,8 +111,8 @@ class CenturyParser extends IsoParser {
         const c = Number(match[1]);
         const year = c => (c - 1) * 100 + 1;
         return {
-            start: dateFields({ year: year(c) }),
-            end: dateFields({ year: year(c + 1) }),
+            start: fullDate(year(c)),
+            end: fullDate(year(c + 1)),
             resolution: 'century'
         };
     }
@@ -126,8 +127,8 @@ class DecadeParser extends IsoParser {
         const d = Number(match[1]);
         const year = d => d * 10;
         return {
-            start: dateFields({ year: year(d) }),
-            end: dateFields({ year: year(d + 1) }),
+            start: fullDate(year(d)),
+            end: fullDate(year(d + 1)),
             resolution: 'decade'
         };
     }
@@ -143,8 +144,8 @@ class SemesterParser extends IsoParser {
         const s = Number(match[2]);
         const month = s => (s - 1) * 6 + 1;
         return {
-            start: dateFields({ year, month: month(s) }),
-            end: dateFields({ year, month: month(s + 1) }),
+            start: fullDate(year, month(s)),
+            end: fullDate(year, month(s + 1)),
             resolution: 'semester'
         };
     }
@@ -160,8 +161,8 @@ class TrimesterParser extends IsoParser {
         const t = Number(match[2]);
         const month = t => (t - 1) * 4 + 1;
         return {
-            start: dateFields({ year, month: month(t) }),
-            end: dateFields({ year, month: month(t + 1) }),
+            start: fullDate(year, month(t)),
+            end: fullDate(year, month(t + 1)),
             resolution: 'trimester'
         };
     }
@@ -169,7 +170,7 @@ class TrimesterParser extends IsoParser {
 
 class QuarterParser extends IsoParser {
     constructor () {
-        super(/^(\d\d\d\d)\-?Q(\d)$/);
+        super(/^(\d\d\d\d)-?Q(\d)$/);
     }
     parse (iso) {
         const match = this.check(iso);
@@ -177,8 +178,8 @@ class QuarterParser extends IsoParser {
         const q = Number(match[2]);
         const month = q => (q - 1) * 3 + 1;
         return {
-            start: dateFields({ year, month: month(q) }),
-            end: dateFields({ year, month: month(q + 1) }),
+            start: fullDate(year, month(q)),
+            end: fullDate(year, month(q + 1)),
             resolution: 'quarter'
         };
     }
@@ -205,7 +206,7 @@ function startOfIsoWeek (y, w) {
 
 class WeekParser extends IsoParser {
     constructor () {
-        super(/^(\d\d\d\d)\-?W(\d\d)$/);
+        super(/^(\d\d\d\d)-?W(\d\d)$/);
     }
     parse (iso) {
         const match = this.check(iso);
@@ -213,14 +214,10 @@ class WeekParser extends IsoParser {
         const week = Number(match[2]);
         const start = startOfIsoWeek(year, week);
         const end = startOfIsoWeek(year, week + 1);
-        const fields = date => ({
-            year: date.getFullYear(),
-            month: date.getMonth() + 1,
-            day: date.getDate()
-        });
+        const fields = date => [date.getFullYear(), date.getMonth() + 1, date.getDate()];
         return {
-            start: dateFields(fields(start)),
-            end: dateFields(fields(end)),
+            start: fullDate(...fields(start)),
+            end: fullDate(...fields(end)),
             resolution: 'week'
         };
     }
@@ -253,11 +250,11 @@ module.exports = function parseISO (iso) {
                 [isoStart, isoEnd] = iso.split(sep);
                 break;
             }
-        };
+        }
         if (abbr !== null) {
             break;
         }
-    };
+    }
     const startParser = findParser(isoStart);
     if (!startParser) {
         throw new Error(`No date parser found for ${iso}`);
@@ -273,8 +270,8 @@ module.exports = function parseISO (iso) {
         if (!endParser) {
             throw new Error(`No date parser found for ${iso}`);
         }
-        endPeriod = endParser.parse(isoEnd);
+        const endPeriod = endParser.parse(isoEnd);
         end = abbr ? endPeriod.end : endPeriod.start;
     }
     return { start, end, resolution };
-}
+};
