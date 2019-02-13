@@ -1,56 +1,12 @@
-// FIXME: Temporarily replicated from periodISO.js ---------------------------
+const {
+    TIME_LEVELS,
+    TIME_STARTS,
+    ABBR_INTERVAL_SEP,
+    ISO_INTERVAL_SEPS,
+    dateValue,
+    fullDate
+} = require('time');
 
-const TIME_LEVELS = ['year', 'month', 'day', 'hour', 'minute', 'second'];
-const TIME_STARTS = [1, 1, 1, 0, 0, 0];
-
-const ABBR_INTERVAL_SEP = '..';
-const ISO_INTERVAL_SEPS = [ '--', '/' ];
-const ISO_INTERVAL_SEP = '/';
-
-function msToDate (msEpoch) {
-    return new Date(msEpoch);
-}
-
-function dateValue(...components) {
-    if (components.length > 1) {
-        components = [components[0], components[1] - 1, ...components.slice(2)];
-    }
-    return Date.UTC(...components);
-}
-
-function utcDate(...components) {
-    return msToDate(dateValue(...components));
-}
-
-function* take(n, iterable) {
-    for (let x of iterable) {
-        if (n <= 0) return;
-        n--;
-        yield x;
-    }
-}
-
-function* dateComponents (d) {
-    yield d.getUTCFullYear();
-    yield d.getUTCMonth() + 1;
-    yield d.getUTCDate();
-    yield d.getUTCHours();
-    yield d.getUTCMinutes();
-    yield d.getUTCSeconds();
-}
-
-function _normDate(allComponents, components) {
-    const date = utcDate(...components);
-    const n = allComponents ? TIME_LEVELS.size : components.length;
-    return [...take(n, dateComponents(date))];
-}
-
-// ---------------------------------------------------------------------------
-
-function fullDate(...components) {
-    // normDate(...components) + TIME_STARTS.slice(components.length - TIME_STARTS.length)
-    return _normDate(true, components);
-}
 class IsoParser {
     constructor (format) {
         this._format = format;
