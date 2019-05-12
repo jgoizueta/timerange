@@ -613,12 +613,12 @@ function timeStartEndToText (v1, v2, resolution=null, onlyCalendarUnit=true) {
     return handler.range(period, resolution, onlyCalendarUnit);
 }
 
-function addToDateValue(value, duration, resolution) {
+function addDurationToDateValue(value, duration, resolution) {
     return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)));
 }
 
 module.exports = {
     textToTimeStartEnd,
     timeStartEndToText,
-    addPeriod: addToDateValue
+    addDurationToDateValue
 };
