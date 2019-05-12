@@ -188,20 +188,26 @@ class WeekFormatter extends Formatter {
     }
 }
 
-class DayFormatter extends Formatter {
-    constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)$/)
+class YMDHMSFormatter extends Formatter {
+    constructor (format, resolution) {
+        super(format);
+        this.resolution = resolution;
     }
     parse (iso) {
         const match = this.check(iso);
-        const year = Number(match[1]);
-        const month = Number(match[2]);
-        const day = Number(match[3]);
+        const parts = match.slice(1).map(v => parseInt(v));
+        const incrementedParts = parts.map((v, i) => i == parts.length - 1 ? v + 1 : v);
         return {
-            start: fullDate(year, month, day),
-            end: fullDate(year, month, day + 1),
-            resolution: 'day'
+            start: fullDate(...parts),
+            end: fullDate(...incrementedParts),
+            resolution: this.resolution
         };
+    }
+}
+
+class DayFormatter extends YMDHMSFormatter {
+    constructor () {
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)$/, 'day')
     }
     format (year, month, day) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
@@ -209,66 +215,27 @@ class DayFormatter extends Formatter {
 
 }
 
-class HourFormatter extends Formatter {
+class HourFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d)$/)
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        const month = Number(match[2]);
-        const day = Number(match[3]);
-        const hour = Number(match[4]);
-        return {
-            start: fullDate(year, month, day, hour),
-            end: fullDate(year, month, day, hour + 1),
-            resolution: 'hour'
-        };
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d)$/, 'hour')
     }
     format (year, month, day, hour) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}`;
     }
 }
 
-class MinuteFormatter extends Formatter {
+class MinuteFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d)$/)
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        const month = Number(match[2]);
-        const day = Number(match[3]);
-        const hour = Number(match[4]);
-        const minute = Number(match[5]);
-        return {
-            start: fullDate(year, month, day, hour, minute),
-            end: fullDate(year, month, day, hour, minute + 1),
-            resolution: 'minute'
-        };
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d)$/, 'minute')
     }
     format (year, month, day, hour, minute) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}`;
     }
 }
 
-class SecondFormatter extends Formatter {
+class SecondFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d):(\d\d)$/)
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        const month = Number(match[2]);
-        const day = Number(match[3]);
-        const hour = Number(match[4]);
-        const minute = Number(match[5]);
-        const second = Number(match[6]);
-        return {
-            start: fullDate(year, month, day, hour, minute, second),
-            end: fullDate(year, month, day, hour, minute, second + 1),
-            resolution: 'second'
-        };
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d):(\d\d)$/, 'second')
     }
     format (year, month, day, hour, minute, second) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}`;
