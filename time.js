@@ -8,22 +8,6 @@ const HOUR = TIME_LEVELS.indexOf('hour');
 const MINUTE = TIME_LEVELS.indexOf('minute');
 const SECOND = TIME_LEVELS.indexOf('second');
 
-const TIME_UNITS = {
-    millennium: { length: 1000, level: YEAR },
-    century:    { length:  100, level: YEAR },
-    decade:     { length:   10, level: YEAR },
-    year:       { length:    1, level: YEAR },
-    semester:   { length:    6, level: MONTH },
-    trimester:  { length:    4, level: MONTH },
-    quarter:    { length:    3, level: MONTH },
-    month:      { length:    1, level: MONTH },
-    week:       { length:    7, level: DAY },
-    day:        { length:    1, level: DAY },
-    hour:       { length:    1, level: HOUR },
-    minute:     { length:    1, level: MINUTE },
-    second:     { length:    1, level: SECOND    }
-};
-
 const ABBR_INTERVAL_SEP = '..';
 const ISO_INTERVAL_SEPS = [ '--', '/' ];
 const ISO_INTERVAL_SEP = '/';
@@ -97,7 +81,6 @@ module.exports = {
     TIME_LEVELS,
     TIME_STARTS,
     YEAR, MONTH, DAY, HOUR, MINUTE, SECOND,
-    TIME_UNITS,
     ABBR_INTERVAL_SEP,
     ISO_INTERVAL_SEPS,
     ISO_INTERVAL_SEP,

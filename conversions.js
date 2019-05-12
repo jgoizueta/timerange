@@ -1,7 +1,6 @@
 const {
     TIME_LEVELS,
     YEAR, MONTH, DAY, HOUR, MINUTE, SECOND,
-    TIME_UNITS,
     ABBR_INTERVAL_SEP,
     ISO_INTERVAL_SEP,
     ISO_INTERVAL_SEPS,
@@ -17,10 +16,12 @@ const {
 } = require('./time');
 
 class Formatter {
-    constructor (format, resolution, base) {
+    constructor (format, resolution, base, numUnits = 1, unit = null) {
         this._format = format;
         this.resolution = resolution;
         this.base = base;
+        this.numUnits = numUnits;
+        this.unit = unit === null ? TIME_LEVELS.indexOf(this.resolution) : unit;
     }
     check (iso) {
         return iso.match(this._format);
@@ -29,21 +30,20 @@ class Formatter {
 
 class YearBasedFormatter extends Formatter {
     constructor (numYears, format, resolution, base) {
-        super(format, resolution, base);
-        this.numYears = numYears;
+        super(format, resolution, base, numYears, YEAR);
     }
     parse (iso) {
         const match = this.check(iso);
         const m = Number(match[1]);
-        const year = m => (m - this.base) * this.numYears + this.base;
+        const year = m => (m - this.base) * this.numUnits + this.base;
         return {
             start: fullDate(year(m)),
             end: fullDate(year(m + 1)),
             resolution: this.resolution
         };
     }
-    _units (year) {
-        return this.base + (year - this.base) / this.numYears;
+    _period (year) {
+        return this.base + (year - this.base) / this.numUnits;
     }
 }
 
@@ -52,7 +52,7 @@ class MillenniumFormatter extends YearBasedFormatter {
         super(1000, /^M(\d+)$/, 'millennium', 1);
     }
     format (year) {
-        const millennium = this._units(year);
+        const millennium = this._period(year);
         return `M${millennium}`;
     }
 }
@@ -62,7 +62,7 @@ class CenturyFormatter extends YearBasedFormatter {
         super(100, /^C(\d+)$/, 'century', 1);
     }
     format (year) {
-        const century = this._units(year);
+        const century = this._period(year);
         return `C${century}`;
     }
 }
@@ -72,7 +72,7 @@ class DecadeFormatter extends YearBasedFormatter {
         super(10, /^D(\d+)$/, 'decade', 0);
     }
     format (year) {
-        const decade = this._units(year);
+        const decade = this._period(year);
         return `D${decade}`;
     }
 }
@@ -88,22 +88,21 @@ class YearFormatter extends YearBasedFormatter {
 
 class MonthBasedFormatter extends Formatter {
     constructor (numMonths, format, resolution) {
-        super(format, resolution, 1);
-        this.numMonths = numMonths;
+        super(format, resolution, 1, numMonths, MONTH);
     }
     parse (iso) {
         const match = this.check(iso);
         const year = Number(match[1]);
         const units = Number(match[2]);
-        const month = units => (units - 1) * this.numMonths + 1;
+        const month = units => (units - 1) * this.numUnits + 1;
         return {
             start: fullDate(year, month(units)),
             end: fullDate(year, month(units + 1)),
             resolution: this.resolution
         };
     }
-    _units (month) {
-        return 1 + (month - 1) / this.numMonths;
+    _period (month) {
+        return 1 + (month - 1) / this.numUnits;
     }
 }
 class SemesterFormatter extends MonthBasedFormatter {
@@ -111,7 +110,7 @@ class SemesterFormatter extends MonthBasedFormatter {
         super(6, /^(\d\d\d\d)S(\d)$/, 'semester');
     }
     format (year, month) {
-        const semester = this._units(month);
+        const semester = this._period(month);
         return `${pad(year, 4)}S${semester}`;
     }
 }
@@ -121,7 +120,7 @@ class TrimesterFormatter extends MonthBasedFormatter {
         super(4, /^(\d\d\d\d)t(\d)$/, 'trimester');
     }
     format (year, month) {
-        const trimester = this._units(month);
+        const trimester = this._period(month);
         return `${pad(year, 4)}t${trimester}`;
     }
 }
@@ -131,7 +130,7 @@ class QuarterFormatter extends MonthBasedFormatter {
         super(3, /^(\d\d\d\d)-?Q(\d)$/, 'quarter');
     }
     format (year, month) {
-        const quarter = this._units(month);
+        const quarter = this._period(month);
         return `${pad(year, 4)}-Q${quarter}`;
     }
 }
@@ -166,7 +165,7 @@ function startOfIsoWeek (y, w) {
 
 class WeekFormatter extends Formatter {
     constructor () {
-        super(/^(\d\d\d\d)-?W(\d\d)$/, 'week', 1);
+        super(/^(\d\d\d\d)-?W(\d\d)$/, 'week', 1, 7, DAY);
     }
     parse (iso) {
         const match = this.check(iso);
@@ -178,7 +177,7 @@ class WeekFormatter extends Formatter {
         return {
             start: fullDate(...fields(start)),
             end: fullDate(...fields(end)),
-            resolution: 'week'
+            resolution: this.resolution
         };
     }
     format(year, month, day) {
@@ -310,7 +309,8 @@ function inc(components, level, delta = 1) {
 }
 
 function baseDuration(duration, resolution) {
-    const { length, level } = TIME_UNITS[resolution];
+    const length = FORMATTERS[resolution].numUnits;
+    const level = FORMATTERS[resolution].unit;
     return [TIME_LEVELS[level], duration * length];
 }
 
@@ -432,10 +432,10 @@ class YearsPeriod extends Period {
         let duration = y2 - y1;
         let resolution = null;
         let isoFirst, isoLast, isoNext;
-        const tryResolutions = Object.keys(TIME_UNITS).filter(res => TIME_UNITS[res].level === YEAR);
+        const tryResolutions = Object.keys(FORMATTERS).filter(res => FORMATTERS[res].unit === YEAR);
         for (let tryResolution of tryResolutions) {
             const fmt = FORMATTERS[tryResolution];
-            const n = TIME_UNITS[tryResolution].length;
+            const n = fmt.numUnits;
             const checkStart = y => ((y - fmt.base) % n) === 0;
             if (duration % n === 0 && checkStart(y1) && this._isForced(forcedResolution, tryResolution)) {
                 duration /= n;
@@ -461,10 +461,10 @@ class MonthsPeriod extends Period {
         let duration = 12 * y2 + m2 - 12 * y1 - m1;
         let resolution = null;
         let isoFirst, isoLast, isoNext;
-        const tryResolutions = Object.keys(TIME_UNITS).filter(res => TIME_UNITS[res].level === MONTH);
+        const tryResolutions = Object.keys(FORMATTERS).filter(res => FORMATTERS[res].unit === MONTH);
         for (let tryResolution of tryResolutions) {
             const fmt = FORMATTERS[tryResolution];
-            const n = TIME_UNITS[tryResolution].length;
+            const n = fmt.numUnits;
             const checkStart = m => ((m - fmt.base) % n) === 0;
             if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, tryResolution)) {
                 duration /= n;
@@ -609,7 +609,7 @@ function periodISO (v1, v2, resolution=null, onlyCalendarUnit=true) {
     let level = period.minBreakLevel;
 
     if (resolution) {
-        const rLevel = TIME_UNITS[resolution].level;
+        const rLevel = FORMATTERS[resolution].unit;
         if (rLevel < level) {
             invalidResolution (period, resolution);
         }
