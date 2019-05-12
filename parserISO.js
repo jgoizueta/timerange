@@ -42,157 +42,121 @@ class YMDHMSFormatter extends Formatter {
     }
 }
 
-class MillenniumFormatter extends Formatter {
-    constructor () {
-        super(/^M(\d+)$/);
+class YearBasedFormatter extends Formatter {
+    constructor (numYears, format, resolution, base) {
+        super(format);
+        this.numYears = numYears;
+        this.resolution = resolution;
+        this.base = base;
     }
     parse (iso) {
         const match = this.check(iso);
         const m = Number(match[1]);
-        const year = m => (m - 1) * 1000 + 1;
+        const year = m => (m - this.base) * this.numYears + this.base;
         return {
             start: fullDate(year(m)),
             end: fullDate(year(m + 1)),
-            resolution: 'millennium'
+            resolution: this.resolution
         };
     }
+    _units (year) {
+        return this.base + (year - this.base) / this.numYears;
+    }
+}
+
+class MillenniumFormatter extends YearBasedFormatter {
+    constructor () {
+        super(1000, /^M(\d+)$/, 'millennium', 1);
+    }
     format (year) {
-        const millennium = 1 + (year - 1) / 1000;
+        const millennium = this._units(year);
         return `M${millennium}`;
     }
 }
 
-class CenturyFormatter extends Formatter {
+class CenturyFormatter extends YearBasedFormatter {
     constructor () {
-        super(/^C(\d+)$/);
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const c = Number(match[1]);
-        const year = c => (c - 1) * 100 + 1;
-        return {
-            start: fullDate(year(c)),
-            end: fullDate(year(c + 1)),
-            resolution: 'century'
-        };
+        super(100, /^C(\d+)$/, 'century', 1);
     }
     format (year) {
-        const century = 1 + (year - 1) / 100;
+        const century = this._units(year);
         return `C${century}`;
     }
 }
 
-class DecadeFormatter extends Formatter {
+class DecadeFormatter extends YearBasedFormatter {
     constructor () {
-        super(/^D(\d+)$/);
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const d = Number(match[1]);
-        const year = d => d * 10;
-        return {
-            start: fullDate(year(d)),
-            end: fullDate(year(d + 1)),
-            resolution: 'decade'
-        };
+        super(10, /^D(\d+)$/, 'decade', 0);
     }
     format (year) {
-        const decade = year / 10;
+        const decade = this._units(year);
         return `D${decade}`;
     }
 }
 
-class YearFormatter extends Formatter {
+class YearFormatter extends YearBasedFormatter {
     constructor () {
-        super(/^(\d+)$/);
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        return {
-            start: fullDate(year),
-            end: fullDate(year + 1),
-            resolution: 'year'
-        };
+        super(1, /^(\d+)$/, 'year', 0);
     }
     format (year) {
         return pad(year, 4);
     }
 }
 
-class SemesterFormatter extends Formatter {
-    constructor () {
-        super(/^(\d\d\d\d)S(\d)$/);
+class MonthBasedFormatter extends Formatter {
+    constructor (numMonths, format, resolution) {
+        super(format);
+        this.numMonths = numMonths;
+        this.resolution = resolution;
     }
     parse (iso) {
         const match = this.check(iso);
         const year = Number(match[1]);
-        const s = Number(match[2]);
-        const month = s => (s - 1) * 6 + 1;
+        const units = Number(match[2]);
+        const month = units => (units - 1) * this.numMonths + 1;
         return {
-            start: fullDate(year, month(s)),
-            end: fullDate(year, month(s + 1)),
-            resolution: 'semester'
+            start: fullDate(year, month(units)),
+            end: fullDate(year, month(units + 1)),
+            resolution: this.resolution
         };
     }
+    _units (month) {
+        return 1 + (month - 1) / this.numMonths;
+    }
+}
+class SemesterFormatter extends MonthBasedFormatter {
+    constructor () {
+        super(6, /^(\d\d\d\d)S(\d)$/, 'semester');
+    }
     format (year, month) {
-        return `${pad(year, 4)}S${1 + (month - 1) / 6}`;
+        const semester = this._units(month);
+        return `${pad(year, 4)}S${semester}`;
     }
 }
 
-class TrimesterFormatter extends Formatter {
+class TrimesterFormatter extends MonthBasedFormatter {
     constructor () {
-        super(/^(\d\d\d\d)t(\d)$/);
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        const t = Number(match[2]);
-        const month = t => (t - 1) * 4 + 1;
-        return {
-            start: fullDate(year, month(t)),
-            end: fullDate(year, month(t + 1)),
-            resolution: 'trimester'
-        };
+        super(4, /^(\d\d\d\d)t(\d)$/, 'trimester');
     }
     format (year, month) {
-        return `${pad(year, 4)}t${1 + (month - 1) / 4}`;
+        const trimester = this._units(month);
+        return `${pad(year, 4)}t${trimester}`;
     }
 }
 
-class QuarterFormatter extends Formatter {
+class QuarterFormatter extends MonthBasedFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-?Q(\d)$/);
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        const q = Number(match[2]);
-        const month = q => (q - 1) * 3 + 1;
-        return {
-            start: fullDate(year, month(q)),
-            end: fullDate(year, month(q + 1)),
-            resolution: 'quarter'
-        };
+        super(3, /^(\d\d\d\d)-?Q(\d)$/, 'quarter');
     }
     format (year, month) {
-        return `${pad(year, 4)}-Q${1 + (month - 1) / 3}`;
+        const quarter = this._units(month);
+        return `${pad(year, 4)}-Q${quarter}`;
     }
 }
 
-class MonthFormatter extends Formatter {
+class MonthFormatter extends MonthBasedFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)$/);
-    }
-    parse (iso) {
-        const match = this.check(iso);
-        const year = Number(match[1]);
-        const month = Number(match[2]);
-        return {
-            start: fullDate(year, month),
-            end: fullDate(year, month + 1),
-            resolution: 'month'
-        };
+        super(1, /^(\d\d\d\d)-(\d\d)$/, 'month');
     }
     format (year, month) {
         return `${pad(year, 4)}-${pad(month, 2)}`;
