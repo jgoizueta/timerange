@@ -1,6 +1,4 @@
 const {
-    TIME_LEVELS,
-    TIME_STARTS,
     ABBR_INTERVAL_SEP,
     ISO_INTERVAL_SEPS,
     dateValue,
@@ -14,14 +12,6 @@ class Formatter {
     check (iso) {
         return iso.match(this._format);
     }
-}
-
-function fieldDefault (value, defaultValue) {
-    return (value === undefined) ? defaultValue : Number(value);
-}
-
-function componentsFromMatch (match) {
-    return match.slice(1).map((v, i) => fieldDefault(v, TIME_STARTS[i]));
 }
 
 class YearBasedFormatter extends Formatter {
