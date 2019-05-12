@@ -183,7 +183,8 @@ class WeekFormatter extends Formatter {
     format(year, month, day) {
         const yd = yearDay(year, dateValue(year, month, day));
         const [iy, w] = yearWeek(year, yd);
-        return `${pad(iy, 4)}-W${pad(w, 2)}`;
+
+        return isoWeek(iy, w);
     }
 }
 
@@ -205,7 +206,7 @@ class YMDHMSFormatter extends Formatter {
 
 class DayFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)$/, 'day', 1)
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)$/, 'day', 1);
     }
     format (year, month, day) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
@@ -215,7 +216,7 @@ class DayFormatter extends YMDHMSFormatter {
 
 class HourFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d)$/, 'hour', 0)
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d)$/, 'hour', 0);
     }
     format (year, month, day, hour) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}`;
@@ -224,7 +225,7 @@ class HourFormatter extends YMDHMSFormatter {
 
 class MinuteFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d)$/, 'minute', 0)
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d)$/, 'minute', 0);
     }
     format (year, month, day, hour, minute) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}`;
@@ -233,14 +234,14 @@ class MinuteFormatter extends YMDHMSFormatter {
 
 class SecondFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d):(\d\d)$/, 'second', 0)
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d):(\d\d)$/, 'second', 0);
     }
     format (year, month, day, hour, minute, second) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}`;
     }
 }
 
-FORMATTERS = [
+const FORMATTERS = [
     new MillenniumFormatter(),
     new CenturyFormatter(),
     new DecadeFormatter(),
@@ -254,7 +255,7 @@ FORMATTERS = [
     new HourFormatter(),
     new MinuteFormatter(),
     new SecondFormatter()
-].reduce((obj, formatter) => { obj[formatter.resolution] = formatter; return obj}, {});
+].reduce((obj, formatter) => { obj[formatter.resolution] = formatter; return obj;}, {});
 
 function findParser (iso) {
     return Object.values(FORMATTERS).find(parser => parser.check(iso));
@@ -296,7 +297,7 @@ function parserISO (iso) {
         end = abbr ? endPeriod.end : endPeriod.start;
     }
     return { start, end, resolution };
-};
+}
 
 function pad (x, n) {
     return x.toString().padStart(n, '0');
@@ -316,11 +317,6 @@ function baseDuration(duration, resolution) {
 
 function addToDateValue(value, duration, resolution) {
     return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)));
-}
-
-function isoDow (y, m, d) {
-    const dow = (new Date(y, m - 1, d)).getDay();
-    return dow === 0 ? 7 : dow;
 }
 
 function invalidPeriod (period, invalid) {
@@ -500,7 +496,6 @@ class DaysPeriod extends Period {
             const yd = yearDay(y, period.startValue);
             const [iy, w] = yearWeek(y, yd);
             if (iy && w) {
-                // TODO: use FORMATTERS
                 duration /= 7;
                 resolution = 'week';
                 isoFirst = isoWeek(iy, w);
@@ -620,7 +615,7 @@ function periodISO (v1, v2, resolution=null, onlyCalendarUnit=true) {
 
     const handler = periodHandlers.find(handler => handler.check(level));
     return handler.range(period, resolution, onlyCalendarUnit);
-};
+}
 
 module.exports = {
     parserISO,
