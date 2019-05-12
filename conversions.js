@@ -421,6 +421,10 @@ function isoWeek(iy, w) {
     return `${pad(iy, 4)}-W${pad(w, 2)}`;
 }
 
+function formattersBasedOn(level) {
+    return Object.values(FORMATTERS).filter(fmt => fmt.unit === level);
+}
+
 class YearsPeriod extends Period {
     level () {
         return YEAR;
@@ -432,14 +436,13 @@ class YearsPeriod extends Period {
         let duration = y2 - y1;
         let resolution = null;
         let isoFirst, isoLast, isoNext;
-        const tryResolutions = Object.keys(FORMATTERS).filter(res => FORMATTERS[res].unit === YEAR);
-        for (let tryResolution of tryResolutions) {
-            const fmt = FORMATTERS[tryResolution];
+        const tryFormatters = formattersBasedOn(YEAR);
+        for (let fmt of tryFormatters) {
             const n = fmt.numUnits;
             const checkStart = y => ((y - fmt.base) % n) === 0;
-            if (duration % n === 0 && checkStart(y1) && this._isForced(forcedResolution, tryResolution)) {
+            if (duration % n === 0 && checkStart(y1) && this._isForced(forcedResolution, fmt.resolution)) {
                 duration /= n;
-                resolution = tryResolution;
+                resolution = fmt.resolution;
                 isoFirst = fmt.format(y1);
                 isoNext = fmt.format(y2);
                 isoLast = duration === 1 ? isoFirst : fmt.format(y2 - n);
@@ -461,14 +464,13 @@ class MonthsPeriod extends Period {
         let duration = 12 * y2 + m2 - 12 * y1 - m1;
         let resolution = null;
         let isoFirst, isoLast, isoNext;
-        const tryResolutions = Object.keys(FORMATTERS).filter(res => FORMATTERS[res].unit === MONTH);
-        for (let tryResolution of tryResolutions) {
-            const fmt = FORMATTERS[tryResolution];
+        const tryFormatters = formattersBasedOn(MONTH);
+        for (let fmt of tryFormatters) {
             const n = fmt.numUnits;
             const checkStart = m => ((m - fmt.base) % n) === 0;
-            if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, tryResolution)) {
+            if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, fmt.resolution)) {
                 duration /= n;
-                resolution = tryResolution;
+                resolution = fmt.resolution;
                 isoFirst = fmt.format(y1, m1);
                 isoNext = fmt.format(y2, m2);
                 isoLast = duration === 1 ? isoFirst : fmt.format(...inc(period.end, MONTH, -n));
