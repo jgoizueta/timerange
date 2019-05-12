@@ -8,36 +8,20 @@ const HOUR = TIME_LEVELS.indexOf('hour');
 const MINUTE = TIME_LEVELS.indexOf('minute');
 const SECOND = TIME_LEVELS.indexOf('second');
 
-const RESOLUTION_LEVEL = {
-    millennium: YEAR,
-    century: YEAR,
-    decade: YEAR,
-    year: YEAR,
-    semester: MONTH,
-    trimester: MONTH,
-    quarter: MONTH,
-    month: MONTH,
-    week: DAY,
-    day: DAY,
-    hour: HOUR,
-    minute: MINUTE,
-    second: SECOND
-};
-
-const UNIT_LENGTH = {
-    millennium: 1000,
-    century: 100,
-    decade: 10,
-    year: 1,
-    semester: 6,
-    trimester: 4,
-    quarter: 3,
-    month: 1,
-    week: 7,
-    day: 1,
-    hour: 1,
-    minute: 1,
-    second: 1
+const TIME_UNITS = {
+    millennium: { length: 1000, level: YEAR },
+    century:    { length:  100, level: YEAR },
+    decade:     { length:   10, level: YEAR },
+    year:       { length:    1, level: YEAR },
+    semester:   { length:    6, level: MONTH },
+    trimester:  { length:    4, level: MONTH },
+    quarter:    { length:    3, level: MONTH },
+    month:      { length:    1, level: MONTH },
+    week:       { length:    7, level: DAY },
+    day:        { length:    1, level: DAY },
+    hour:       { length:    1, level: HOUR },
+    minute:     { length:    1, level: MINUTE },
+    second:     { length:    1, level: SECOND    }
 };
 
 const ABBR_INTERVAL_SEP = '..';
@@ -113,8 +97,7 @@ module.exports = {
     TIME_LEVELS,
     TIME_STARTS,
     YEAR, MONTH, DAY, HOUR, MINUTE, SECOND,
-    RESOLUTION_LEVEL,
-    UNIT_LENGTH,
+    TIME_UNITS,
     ABBR_INTERVAL_SEP,
     ISO_INTERVAL_SEPS,
     ISO_INTERVAL_SEP,

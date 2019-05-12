@@ -1,8 +1,7 @@
 const {
     TIME_LEVELS,
     YEAR, MONTH, DAY, HOUR, MINUTE, SECOND,
-    RESOLUTION_LEVEL,
-    UNIT_LENGTH,
+    TIME_UNITS,
     ABBR_INTERVAL_SEP,
     ISO_INTERVAL_SEP,
     MS_PER_DAY,
@@ -42,9 +41,8 @@ function inc(components, level, delta = 1) {
 }
 
 function baseDuration(duration, resolution) {
-    const level = RESOLUTION_LEVEL[resolution];
-    const mult = UNIT_LENGTH[resolution];
-    return [TIME_LEVELS[level], duration * mult];
+    const { length, level } = TIME_UNITS[resolution];
+    return [TIME_LEVELS[level], duration * length];
 }
 
 function addToDateValue(value, duration, resolution) {
@@ -227,9 +225,9 @@ class YearsPeriod extends Period {
         let duration = y2 - y1;
         let resolution = null;
         let isoFirst, isoLast, isoNext;
-        const tryResolutions = Object.keys(RESOLUTION_LEVEL).filter(res => RESOLUTION_LEVEL[res] === YEAR);
+        const tryResolutions = Object.keys(TIME_UNITS).filter(res => TIME_UNITS[res].level === YEAR);
         for (let tryResolution of tryResolutions) {
-            const n = UNIT_LENGTH[tryResolution];
+            const n = TIME_UNITS[tryResolution].length;
             const base = RESOLUTION_BASE[tryResolution];
             const checkStart = y => ((y - base) % n) === 0;
             if (duration % n === 0 && checkStart(y1) && this._isForced(forcedResolution, tryResolution)) {
@@ -257,9 +255,9 @@ class MonthsPeriod extends Period {
         let duration = 12 * y2 + m2 - 12 * y1 - m1;
         let resolution = null;
         let isoFirst, isoLast, isoNext;
-        const tryResolutions = Object.keys(RESOLUTION_LEVEL).filter(res => RESOLUTION_LEVEL[res] === MONTH);
+        const tryResolutions = Object.keys(TIME_UNITS).filter(res => TIME_UNITS[res].level === MONTH);
         for (let tryResolution of tryResolutions) {
-            const n = UNIT_LENGTH[tryResolution];
+            const n = TIME_UNITS[tryResolution].length;
             const base = RESOLUTION_BASE[tryResolution];
             const checkStart = m => ((m - base) % n) === 0;
             if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, tryResolution)) {
@@ -401,7 +399,7 @@ module.exports = function periodISO (v1, v2, resolution=null, onlyCalendarUnit=t
     let level = period.minBreakLevel;
 
     if (resolution) {
-        const rLevel = RESOLUTION_LEVEL[resolution];
+        const rLevel = TIME_UNITS[resolution].level;
         if (rLevel < level) {
             invalidResolution (period, resolution);
         }
