@@ -1,4 +1,4 @@
-const parserISO = require('../parserISO');
+const { parserISO } = require('../conversions');
 
 function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
     return Date.UTC(y, m - 1, d, h, min, sec);
