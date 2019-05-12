@@ -226,26 +226,17 @@ const FORMATTERS = {
     millennium: new MillenniumFormatter(),
     century: new CenturyFormatter(),
     decade: new DecadeFormatter(),
+    year: new YearFormatter(),
     semester: new SemesterFormatter(),
     trimester: new TrimesterFormatter(),
     quarter: new QuarterFormatter(),
-    week: new WeekFormatter()
-    // new YMDHMSFormatter()
+    month: new MonthFormatter(),
+    week: new WeekFormatter(),
+    temporary: new YMDHMSFormatter()
 };
 
-const isoFormats = [ // => Object.values(FORMATTERS)
-    new MillenniumFormatter(),
-    new CenturyFormatter(),
-    new DecadeFormatter(),
-    new SemesterFormatter(),
-    new TrimesterFormatter(),
-    new QuarterFormatter(),
-    new WeekFormatter(),
-    new YMDHMSFormatter()
-];
-
 function findParser (iso) {
-    return isoFormats.find(parser => parser.check(iso));
+    return Object.values(FORMATTERS).find(parser => parser.check(iso));
 }
 
 module.exports = function parseISO (iso) {
