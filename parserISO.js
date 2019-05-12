@@ -5,7 +5,7 @@ const {
     ISO_INTERVAL_SEPS,
     dateValue,
     fullDate
-} = require('time');
+} = require('./time');
 
 class IsoParser {
     constructor (format) {

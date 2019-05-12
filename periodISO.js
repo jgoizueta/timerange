@@ -13,7 +13,7 @@ const {
     dateValue,
     normDate,
     valueComponents
-} = require('time');
+} = require('./time');
 
 const ISO_FORMATS = {
     millennium: isoMillennium,
