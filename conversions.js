@@ -261,44 +261,6 @@ function findParser (iso) {
     return Object.values(FORMATTERS).find(parser => parser.check(iso));
 }
 
-function parserISO (iso) {
-    iso = iso || '';
-    let abbr = null;
-    let isoStart = iso;
-    let isoEnd = null;
-    for (let [isAbbr, seps] of [[true, [ABBR_INTERVAL_SEP]], [false, ISO_INTERVAL_SEPS]]) {
-        for (let sep of seps) {
-            if (iso.includes(sep)) {
-                abbr = isAbbr;
-                [isoStart, isoEnd] = iso.split(sep);
-                break;
-            }
-        }
-        if (abbr !== null) {
-            break;
-        }
-    }
-    const startParser = findParser(isoStart);
-    if (!startParser) {
-        throw new Error(`No date parser found for ${iso}`);
-    }
-    let { start, end, resolution } = startParser.parse(isoStart);
-    if (isoEnd && isoEnd !== isoStart) {
-        if (isoStart.match(/^[A-Z]\d+$/) && isoEnd.match(/^\d+$/)) {
-            isoEnd = isoStart[0] + isoEnd;
-        } else if (isoEnd.length < isoStart.length) {
-            isoEnd = isoStart.slice(0, isoStart.length - isoEnd.length) + isoEnd;
-        }
-        const endParser = findParser(isoEnd);
-        if (!endParser) {
-            throw new Error(`No date parser found for ${iso}`);
-        }
-        const endPeriod = endParser.parse(isoEnd);
-        end = abbr ? endPeriod.end : endPeriod.start;
-    }
-    return { start, end, resolution };
-}
-
 function pad (x, n) {
     return x.toString().padStart(n, '0');
 }
@@ -313,10 +275,6 @@ function baseDuration(duration, resolution) {
     const length = FORMATTERS[resolution].numUnits;
     const level = FORMATTERS[resolution].unit;
     return [TIME_LEVELS[level], duration * length];
-}
-
-function addToDateValue(value, duration, resolution) {
-    return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)));
 }
 
 function invalidPeriod (period, invalid) {
@@ -601,7 +559,45 @@ class StartEndPeriod {
     }
 }
 
-function periodISO (v1, v2, resolution=null, onlyCalendarUnit=true) {
+function textToTimeStartEnd (iso) {
+    iso = iso || '';
+    let abbr = null;
+    let isoStart = iso;
+    let isoEnd = null;
+    for (let [isAbbr, seps] of [[true, [ABBR_INTERVAL_SEP]], [false, ISO_INTERVAL_SEPS]]) {
+        for (let sep of seps) {
+            if (iso.includes(sep)) {
+                abbr = isAbbr;
+                [isoStart, isoEnd] = iso.split(sep);
+                break;
+            }
+        }
+        if (abbr !== null) {
+            break;
+        }
+    }
+    const startParser = findParser(isoStart);
+    if (!startParser) {
+        throw new Error(`No date parser found for ${iso}`);
+    }
+    let { start, end, resolution } = startParser.parse(isoStart);
+    if (isoEnd && isoEnd !== isoStart) {
+        if (isoStart.match(/^[A-Z]\d+$/) && isoEnd.match(/^\d+$/)) {
+            isoEnd = isoStart[0] + isoEnd;
+        } else if (isoEnd.length < isoStart.length) {
+            isoEnd = isoStart.slice(0, isoStart.length - isoEnd.length) + isoEnd;
+        }
+        const endParser = findParser(isoEnd);
+        if (!endParser) {
+            throw new Error(`No date parser found for ${iso}`);
+        }
+        const endPeriod = endParser.parse(isoEnd);
+        end = abbr ? endPeriod.end : endPeriod.start;
+    }
+    return { start, end, resolution };
+}
+
+function timeStartEndToText (v1, v2, resolution=null, onlyCalendarUnit=true) {
     const period = StartEndPeriod.fromValues(v1, v2);
     let level = period.minBreakLevel;
 
@@ -617,8 +613,12 @@ function periodISO (v1, v2, resolution=null, onlyCalendarUnit=true) {
     return handler.range(period, resolution, onlyCalendarUnit);
 }
 
+function addToDateValue(value, duration, resolution) {
+    return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)));
+}
+
 module.exports = {
-    parserISO,
-    periodISO,
+    textToTimeStartEnd,
+    timeStartEndToText,
     addPeriod: addToDateValue
 };
