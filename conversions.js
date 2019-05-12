@@ -17,8 +17,10 @@ const {
 } = require('./time');
 
 class Formatter {
-    constructor (format) {
+    constructor (format, resolution, base) {
         this._format = format;
+        this.resolution = resolution;
+        this.base = base;
     }
     check (iso) {
         return iso.match(this._format);
@@ -27,10 +29,8 @@ class Formatter {
 
 class YearBasedFormatter extends Formatter {
     constructor (numYears, format, resolution, base) {
-        super(format);
+        super(format, resolution, base);
         this.numYears = numYears;
-        this.resolution = resolution;
-        this.base = base;
     }
     parse (iso) {
         const match = this.check(iso);
@@ -88,9 +88,8 @@ class YearFormatter extends YearBasedFormatter {
 
 class MonthBasedFormatter extends Formatter {
     constructor (numMonths, format, resolution) {
-        super(format);
+        super(format, resolution, 1);
         this.numMonths = numMonths;
-        this.resolution = resolution;
     }
     parse (iso) {
         const match = this.check(iso);
@@ -167,7 +166,7 @@ function startOfIsoWeek (y, w) {
 
 class WeekFormatter extends Formatter {
     constructor () {
-        super(/^(\d\d\d\d)-?W(\d\d)$/);
+        super(/^(\d\d\d\d)-?W(\d\d)$/, 'week', 1);
     }
     parse (iso) {
         const match = this.check(iso);
@@ -190,9 +189,8 @@ class WeekFormatter extends Formatter {
 }
 
 class YMDHMSFormatter extends Formatter {
-    constructor (format, resolution) {
-        super(format);
-        this.resolution = resolution;
+    constructor (format, resolution, base) {
+        super(format, resolution, base);
     }
     parse (iso) {
         const match = this.check(iso);
@@ -208,7 +206,7 @@ class YMDHMSFormatter extends Formatter {
 
 class DayFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)$/, 'day')
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)$/, 'day', 1)
     }
     format (year, month, day) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
@@ -218,7 +216,7 @@ class DayFormatter extends YMDHMSFormatter {
 
 class HourFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d)$/, 'hour')
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d)$/, 'hour', 0)
     }
     format (year, month, day, hour) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}`;
@@ -227,7 +225,7 @@ class HourFormatter extends YMDHMSFormatter {
 
 class MinuteFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d)$/, 'minute')
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d)$/, 'minute', 0)
     }
     format (year, month, day, hour, minute) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}`;
@@ -236,28 +234,28 @@ class MinuteFormatter extends YMDHMSFormatter {
 
 class SecondFormatter extends YMDHMSFormatter {
     constructor () {
-        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d):(\d\d)$/, 'second')
+        super(/^(\d\d\d\d)-(\d\d)-(\d\d)(?:T|\s)(\d\d):(\d\d):(\d\d)$/, 'second', 0)
     }
     format (year, month, day, hour, minute, second) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}`;
     }
 }
 
-const FORMATTERS = {
-    millennium: new MillenniumFormatter(),
-    century: new CenturyFormatter(),
-    decade: new DecadeFormatter(),
-    year: new YearFormatter(),
-    semester: new SemesterFormatter(),
-    trimester: new TrimesterFormatter(),
-    quarter: new QuarterFormatter(),
-    month: new MonthFormatter(),
-    week: new WeekFormatter(),
-    day: new DayFormatter(),
-    hour: new HourFormatter(),
-    minute: new MinuteFormatter(),
-    second: new SecondFormatter()
-};
+FORMATTERS = [
+    new MillenniumFormatter(),
+    new CenturyFormatter(),
+    new DecadeFormatter(),
+    new YearFormatter(),
+    new SemesterFormatter(),
+    new TrimesterFormatter(),
+    new QuarterFormatter(),
+    new MonthFormatter(),
+    new WeekFormatter(),
+    new DayFormatter(),
+    new HourFormatter(),
+    new MinuteFormatter(),
+    new SecondFormatter()
+].reduce((obj, formatter) => { obj[formatter.resolution] = formatter; return obj}, {});
 
 function findParser (iso) {
     return Object.values(FORMATTERS).find(parser => parser.check(iso));
@@ -299,22 +297,6 @@ function parserISO (iso) {
         end = abbr ? endPeriod.end : endPeriod.start;
     }
     return { start, end, resolution };
-};
-
-const ISO_FORMATS = {
-    millennium: isoMillennium,
-    century: isoCentury,
-    decade: isoDecade,
-    year: isoYear,
-    semester: isoSemester,
-    trimester: isoTrimester,
-    quarter: isoQuarter,
-    month: isoMonth,
-    // week: isoWeek,
-    day: isoDay,
-    hour: isoHour,
-    minute: isoMinute,
-    second: isoSecond
 };
 
 function pad (x, n) {
@@ -435,71 +417,9 @@ class Period {
     }
 }
 
-function isoMillennium(year) {
-    const millennium = 1 + (year - 1) / 1000;
-    return `M${millennium}`;
-}
-
-function isoCentury(year) {
-    const century = 1 + (year - 1) / 100;
-    return `C${century}`;
-}
-
-function isoDecade(year) {
-    const decade = year / 10;
-    return `D${decade}`;
-}
-
-function isoYear(y) {
-    return pad(y, 4);
-}
-
-function isoSemester(y, m) {
-    return `${pad(y, 4)}S${1 + (m - 1) / 6}`;
-}
-
-function isoTrimester(y, m) {
-    return `${pad(y, 4)}t${1 + (m - 1) / 4}`;
-}
-
-function isoQuarter(y, m) {
-    return `${pad(y, 4)}-Q${1 + (m - 1) / 3}`;
-}
-
-function isoMonth(y, m) {
-    return `${pad(y, 4)}-${pad(m, 2)}`;
-}
-
 function isoWeek(iy, w) {
     return `${pad(iy, 4)}-W${pad(w, 2)}`;
 }
-
-function isoDay(y, m, d) {
-    return `${pad(y, 4)}-${pad(m, 2)}-${pad(d, 2)}`;
-}
-
-function isoHour(y, m, d, h) {
-    return `${pad(y, 4)}-${pad(m, 2)}-${pad(d, 2)}T${pad(h, 2)}`;
-}
-
-function isoMinute(y, m, d, h, mn) {
-    return `${pad(y, 4)}-${pad(m, 2)}-${pad(d, 2)}T${pad(h, 2)}:${pad(mn, 2)}`;
-}
-
-function isoSecond(y, m, d, h, mn, s) {
-    return `${pad(y, 4)}-${pad(m, 2)}-${pad(d, 2)}T${pad(h, 2)}:${pad(mn, 2)}:${pad(s, 2)}`;
-}
-
-const RESOLUTION_BASE = {
-    millennium: 1,
-    century: 1,
-    decade: 0,
-    year: 0,
-    semester: 1,
-    trimester: 1,
-    quarter: 1,
-    month: 0
-};
 
 class YearsPeriod extends Period {
     level () {
@@ -514,16 +434,15 @@ class YearsPeriod extends Period {
         let isoFirst, isoLast, isoNext;
         const tryResolutions = Object.keys(TIME_UNITS).filter(res => TIME_UNITS[res].level === YEAR);
         for (let tryResolution of tryResolutions) {
+            const fmt = FORMATTERS[tryResolution];
             const n = TIME_UNITS[tryResolution].length;
-            const base = RESOLUTION_BASE[tryResolution];
-            const checkStart = y => ((y - base) % n) === 0;
+            const checkStart = y => ((y - fmt.base) % n) === 0;
             if (duration % n === 0 && checkStart(y1) && this._isForced(forcedResolution, tryResolution)) {
                 duration /= n;
                 resolution = tryResolution;
-                const isoFmt = ISO_FORMATS[resolution];
-                isoFirst = isoFmt(y1);
-                isoNext = isoFmt(y2);
-                isoLast = duration === 1 ? isoFirst : isoFmt(y2 - n);
+                isoFirst = fmt.format(y1);
+                isoNext = fmt.format(y2);
+                isoLast = duration === 1 ? isoFirst : fmt.format(y2 - n);
                 break;
             }
         }
@@ -544,16 +463,15 @@ class MonthsPeriod extends Period {
         let isoFirst, isoLast, isoNext;
         const tryResolutions = Object.keys(TIME_UNITS).filter(res => TIME_UNITS[res].level === MONTH);
         for (let tryResolution of tryResolutions) {
+            const fmt = FORMATTERS[tryResolution];
             const n = TIME_UNITS[tryResolution].length;
-            const base = RESOLUTION_BASE[tryResolution];
-            const checkStart = m => ((m - base) % n) === 0;
+            const checkStart = m => ((m - fmt.base) % n) === 0;
             if (duration % n === 0 && checkStart(m1) && this._isForced(forcedResolution, tryResolution)) {
                 duration /= n;
                 resolution = tryResolution;
-                const isoFmt = ISO_FORMATS[resolution];
-                isoFirst = isoFmt(y1, m1);
-                isoNext = isoFmt(y2, m2);
-                isoLast = duration === 1 ? isoFirst : isoFmt(...inc(period.end, MONTH, -n));
+                isoFirst = fmt.format(y1, m1);
+                isoNext = fmt.format(y2, m2);
+                isoLast = duration === 1 ? isoFirst : fmt.format(...inc(period.end, MONTH, -n));
                 break;
             }
         }
@@ -580,6 +498,7 @@ class DaysPeriod extends Period {
             const yd = yearDay(y, period.startValue);
             const [iy, w] = yearWeek(y, yd);
             if (iy && w) {
+                // TODO: use FORMATTERS
                 duration /= 7;
                 resolution = 'week';
                 isoFirst = isoWeek(iy, w);
@@ -589,9 +508,10 @@ class DaysPeriod extends Period {
             }
         }
         if (!isoFirst) {
-            isoFirst = isoDay(...period.start);
-            isoNext = isoDay(...period.end);
-            isoLast = duration === 1 ? isoFirst : isoDay(...inc(period.end, DAY, -1));
+            const fmt = FORMATTERS.day;
+            isoFirst = fmt.format(...period.start);
+            isoNext = fmt.format(...period.end);
+            isoLast = duration === 1 ? isoFirst : fmt.format(...inc(period.end, DAY, -1));
         }
         return { duration, resolution, isoFirst, isoLast, isoNext };
     }
@@ -603,13 +523,14 @@ class HoursPeriod extends Period {
     }
 
     _reduce (period) {
+        const fmt = FORMATTERS.hour;
         const duration = Math.round((period.endValue - period.startValue) / MS_PER_HOUR);
-        const isoFirst = isoHour(...period.start);
-        const isoNext = isoHour(...period.end);
+        const isoFirst = fmt.format(...period.start);
+        const isoNext = fmt.format(...period.end);
         const isoLast = (duration === 1)
             ? isoFirst
-            : isoHour(...inc(period.end, HOUR, -1));
-        return { duration, resolution: 'hour', isoFirst, isoLast, isoNext };
+            : fmt.format(...inc(period.end, HOUR, -1));
+        return { duration, resolution: fmt.resolution, isoFirst, isoLast, isoNext };
     }
 }
 
@@ -619,13 +540,14 @@ class MinutesPeriod extends Period {
     }
 
     _reduce (period) {
+        const fmt = FORMATTERS.minute;
         const duration = Math.round((period.endValue - period.startValue) / MS_PER_MINUTE);
-        const isoFirst = isoMinute(...period.start);
-        const isoNext = isoMinute(...period.end);
+        const isoFirst = fmt.format(...period.start);
+        const isoNext = fmt.format(...period.end);
         const isoLast = (duration === 1)
             ? isoFirst
-            : isoMinute(...inc(period.end, MINUTE, -1));
-        return { duration, resolution: 'minute', isoFirst, isoLast, isoNext };
+            : fmt.format(...inc(period.end, MINUTE, -1));
+        return { duration, resolution: fmt.resolution, isoFirst, isoLast, isoNext };
     }
 }
 
@@ -635,13 +557,14 @@ class SecondsPeriod extends Period {
     }
 
     _reduce (period) {
+        const fmt = FORMATTERS.second;
         const duration = Math.round((period.endValue - period.startValue) / MS_PER_S);
-        let isoFirst = isoSecond(...period.start);
-        let isoNext = isoSecond(...period.end);
+        let isoFirst = fmt.format(...period.start);
+        let isoNext = fmt.format(...period.end);
         const isoLast = (duration === 1)
             ? isoFirst
-            : isoSecond(...inc(period.end, SECOND, -1));
-        return { duration, resolution: 'second', isoFirst, isoLast, isoNext };
+            : fmt.format(...inc(period.end, SECOND, -1));
+        return { duration, resolution: fmt.resolution, isoFirst, isoLast, isoNext };
     }
 }
 
