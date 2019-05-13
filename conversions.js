@@ -1,5 +1,6 @@
 const {
     TIME_LEVELS,
+    TIME_STARTS,
     YEAR, MONTH, DAY, HOUR, MINUTE, SECOND,
     ABBR_INTERVAL_SEP,
     ISO_INTERVAL_SEP,
@@ -614,11 +615,41 @@ function timeStartEndToText (v1, v2, resolution=null, onlyCalendarUnit=true) {
 }
 
 function addDurationToDateValue(value, duration, resolution) {
-    return dateValue(inc(valueComponents(value), ...baseDuration(duration, resolution)));
+    return dateValue(...inc(valueComponents(value), ...baseDuration(duration, resolution)));
+}
+
+function roundDateValue(value, resolution, mode='floor') {
+    const components = valueComponents(value);
+    return dateValue(...roundDateComponents(components, resolution, mode));
+}
+
+function roundDateComponents(components, resolution, rounding) {
+    const fmt = FORMATTERS[resolution];
+    let c0 = Object.keys(TIME_LEVELS).map(i => components[i] - TIME_STARTS[i]);
+    const excess = [c0[fmt.unit] % fmt.numUnits].concat(c0.slice(fmt.unit + 1));
+    if (excess.some(x => x > 0)) {
+        const n = rounding == 'floor' ? 0 : fmt.numUnits;
+        c0 = c0.slice(0, fmt.unit).concat([c0[fmt.unit] + n - excess[0]]);
+        components = Object.keys(c0).map(i => c0[i] + TIME_STARTS[i]);
+    }
+    return normDate(...components);
+}
+
+// FIXME: chose one of incDateValue, addDurationToDateValue
+function incDateValue(value, resolution, duration = 1) {
+    const components = valueComponents(value);
+    return dateValue(...incDateComponents(components, resolution, duration));
+}
+
+function incDateComponents(components, resolution, duration = 1) {
+    const fmt = FORMATTERS[resolution];
+    return inc(components, fmt.unit, duration * fmt.numUnits);
 }
 
 module.exports = {
     textToTimeStartEnd,
     timeStartEndToText,
-    addDurationToDateValue
+    addDurationToDateValue,
+    roundDateValue,
+    incDateValue
 };

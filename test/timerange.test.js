@@ -36,4 +36,37 @@ describe('TimeRange', () => {
         t = TimeRange.fromText('2018..2019');
         expect(t.iso).toEqual('2018/2020');
     });
+    test('can change resolution', () => {
+        let t = TimeRange.fromText('2018..2019').in('month');
+        expect(t.text).toEqual('2018-01..2019-12');
+    });
+    test('define from ISO', () => {
+        let t = TimeRange.fromISO('2018-05/2019-01');
+        expect(t.text).toEqual('2018-05..12');
+    });
+    test('has duration in seconds', () => {
+        let t = TimeRange.fromISO('2018-05-12T07');
+        expect(t.durationSeconds).toEqual(3600);
+    });
+    test('has duration', () => {
+        let t = TimeRange.fromISO('2018-05-12T07');
+        expect(t.duration).toEqual(1);
+        t = TimeRange.fromISO('2018-05-12T07..09');
+        expect(t.duration).toEqual(3);
+    });
+    test('can define resolution', () => {
+        const start = time(2018), end = time(2020);
+        let t = TimeRange.fromStartEndValues(start, end, { resolution: 'year' });
+        expect(t.text).toEqual('2018..2019');
+        expect(t.duration).toEqual(2);
+        expect(t.resolution).toEqual('year');
+        t = TimeRange.fromStartEndValues(start, end, { resolution: 'month' });
+        expect(t.text).toEqual('2018-01..2019-12');
+        expect(t.duration).toEqual(24);
+        expect(t.resolution).toEqual('month');
+        t = TimeRange.fromStartEndValues(start, end, { resolution: 'day' });
+        expect(t.text).toEqual('2018-01-01..2019-12-31');
+        expect(t.duration).toEqual(2*365);
+        expect(t.resolution).toEqual('day');
+    });
 });

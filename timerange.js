@@ -1,4 +1,16 @@
-const { timeStartEndToText, textToTimeStartEnd, addDurationToDateValue } = require('./conversions');
+/**
+ *   A TimeRange consists of a time interval (start, end times, representing t such that start <= t < end)
+ *   and a resolution.
+ *   This can be represented uniquely as a text (abbreviated form),
+ *   and has an implicit duration (in the resolution units).
+ *   The interval can be represented in ISO format, but it doesn't determine
+ *   the time range, since the same interval can be interpreted at different resolutions
+ *   (e.g. 1 year, 365 days, ...). The interval (start, end times) need to
+ *   be consistent with the resolution units (lie at unit boundaries).
+ */
+
+
+const { timeStartEndToText, textToTimeStartEnd, addDurationToDateValue, roundDateValue, incDateValue } = require('./conversions');
 const { dateValue } = require('./time');
 TimeInstant = require('./timeinstant');
 
@@ -36,17 +48,18 @@ module.exports = class TimeRange {
         return new TimeRange(timeZone, startValue, endValue, { resolution });
     }
 
-    static fromStartDuration (startValue, duration, resolution, adjust='floor') {
-        // adjust: adjust start with 'floor'/'ceil' to resolution units
-        // generate abbr of startValue with resolution; add duration to compute end
+    static fromStartDuration (startValue, duration, resolution, { adjust='floor', timeZone=null }={}) {
+        startValue = roundDateValue(startValue, resolution, adjust);
+        const endValue = incDateValue(startValue, resolution, duration);
+        return TimeRange.fromStartEndValues(startValue, endValue, { timeZone, resolution });
     }
 
     in(resolutionUnits) {
-        return TimeRange.fromStartEndValues(this._startValue, this._endValue, { timeZone: this._timeZone, resolution: resolutionUnits }={});
+        return TimeRange.fromStartEndValues(this._startValue, this._endValue, { timeZone: this._timeZone, resolution: resolutionUnits });
     }
 
     get durationSeconds () {
-        return this._endValue - this._startValue;
+        return (this._endValue - this._startValue)/1000;
     }
 
     get timeZone () {

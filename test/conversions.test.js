@@ -1,4 +1,4 @@
-const { timeStartEndToText, textToTimeStartEnd } = require('../conversions');
+const { timeStartEndToText, textToTimeStartEnd, roundDateValue } = require('../conversions');
 
 function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
     return Date.UTC(y, m - 1, d, h, min, sec);
@@ -772,3 +772,32 @@ describe('timeStartEndToText with forced resolution', () => {
         expect(abbrPeriod(time(1001), time(4001), 'century')).toEqual(['C11..40', 30, 'century']);
     });
 });
+describe('roundDateValue', () => {
+    test('round correctly', () => {
+        expect(roundDateValue(time(2018,1,1), 'month', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1), 'month', 'ceil')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1,1), 'month', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1,1), 'month', 'ceil')).toEqual(time(2018,2));
+        expect(roundDateValue(time(2018,1,1,2), 'month', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1,2), 'month', 'ceil')).toEqual(time(2018,2));
+
+        expect(roundDateValue(time(2018,1,1), 'day', 'floor')).toEqual(time(2018,1,1));
+        expect(roundDateValue(time(2018,1,1), 'day', 'ceil')).toEqual(time(2018,1,1));
+        expect(roundDateValue(time(2018,1,1,1), 'day', 'floor')).toEqual(time(2018,1,1));
+        expect(roundDateValue(time(2018,1,1,1), 'day', 'ceil')).toEqual(time(2018,1,2));
+        expect(roundDateValue(time(2018,1,1,4), 'hour', 'floor')).toEqual(time(2018,1,1,4));
+        expect(roundDateValue(time(2018,1,1,4), 'hour', 'ceil')).toEqual(time(2018,1,1,4));
+        expect(roundDateValue(time(2018,1,1,4,1), 'hour', 'floor')).toEqual(time(2018,1,1,4));
+        expect(roundDateValue(time(2018,1,1,4,1), 'hour', 'ceil')).toEqual(time(2018,1,1,5));
+
+        expect(roundDateValue(time(2018,1,3), 'month', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,3), 'month', 'ceil')).toEqual(time(2018,2));
+        expect(roundDateValue(time(2018,1,3), 'quarter', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,3), 'quarter', 'ceil')).toEqual(time(2018,4));
+        expect(roundDateValue(time(2018,1,1), 'quarter', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1), 'quarter', 'ceil')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1,1), 'quarter', 'floor')).toEqual(time(2018,1));
+        expect(roundDateValue(time(2018,1,1,1), 'quarter', 'ceil')).toEqual(time(2018,4));
+    });
+});
+
