@@ -61,7 +61,7 @@ module.exports = class TimeRange {
     }
 
     _set () {
-        const { iso, resolution, abbr, duration } = timeStartEndToText(this._startValue, this._endValue, this._resolution);
+        const { iso, resolution, abbr, duration } = timeStartEndToText(this._startValue, this._endValue, this._resolution, false);
         this._iso = iso;
         this._text = abbr;
         this._duration = duration;
