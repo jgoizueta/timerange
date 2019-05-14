@@ -48,10 +48,18 @@ module.exports = class TimeRange {
         return new TimeRange(timeZone, startValue, endValue, { resolution });
     }
 
-    static fromStartDuration (startValue, duration, resolution, { adjust='floor', timeZone=null }={}) {
+    static fromStartEnd (start, end, { timeZone=null, resolution=null }={}) {
+        return TimeRange.fromStartEndValues(start.value, end.value, { timeZone, resolution });
+    }
+
+    static fromStartValueDuration (startValue, duration, resolution, { adjust='floor', timeZone=null }={}) {
         startValue = roundDateValue(startValue, resolution, adjust);
         const endValue = incDateValue(startValue, resolution, duration);
         return TimeRange.fromStartEndValues(startValue, endValue, { timeZone, resolution });
+    }
+
+    static fromStartDuration (start, duration, resolution, { adjust='floor', timeZone=null }={}) {
+        return TimeRange.fromStartValueDuration(start.value, duration, resolution, { adjusdt, timeZone });
     }
 
     in(resolutionUnits) {
@@ -133,7 +141,6 @@ module.exports = class TimeRange {
         return this.timeZone === other.timeZone;
     }
 
-
     contains (other) {
         // raise if !this.sameTimeZone(other)
         return other.startValue >= this.startValue && other.endValue <= this.endValue;
@@ -181,10 +188,13 @@ module.exports = class TimeRange {
     }
 
     static *betweenValues (startValue, endValue, resolution, duration = 1) {
-        let xx = TimeRange.fromStartDuration(startValue, duration, resolution);
-        for (let t = TimeRange.fromStartDuration(startValue, duration, resolution); t.endsBefore(endValue); t = t.next()) {
+        for (let t = TimeRange.fromStartValueDuration(startValue, duration, resolution); t.endsBefore(endValue); t = t.next()) {
             yield t;
         }
+    }
+
+    static *between (start, end, resolution, duration = 1) {
+        return betweenValues(start.value, end.value, resolution, duration);
     }
 
     // largest interval contained in both this and other

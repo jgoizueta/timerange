@@ -30,6 +30,10 @@ module.exports = class TimeInstant {
         return this.fromComponents(components, tz);
     }
 
+    get value () {
+        return this._value;
+    }
+
     get components () {
         return valueComponents(this._value);
     }
