@@ -5,6 +5,10 @@ function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
     return Date.UTC(y, m - 1, d, h, min, sec);
 }
 
+function getToTexts(gen) {
+    return Array.from(gen).map(t => t.text);
+}
+
 describe('TimeRange', () => {
     test('should compute start and end values from text description', () => {
         let t = TimeRange.fromText('2018');
@@ -68,5 +72,18 @@ describe('TimeRange', () => {
         expect(t.text).toEqual('2018-01-01..2019-12-31');
         expect(t.duration).toEqual(2*365);
         expect(t.resolution).toEqual('day');
+    });
+    test('can iterate times', () => {
+        let values = getToTexts(TimeRange.betweenValues(time(2019, 5, 1), time(2019, 8, 1), 'month'));
+        expect(values).toEqual([ '2019-05', '2019-06', '2019-07' ]);
+
+        values = getToTexts(TimeRange.betweenValues(time(2019, 4), time(2020, 8, 1), 'quarter'));
+        expect(values).toEqual([ '2019-Q2', '2019-Q3', '2019-Q4', '2020-Q1', '2020-Q2' ]);
+
+        values = getToTexts(TimeRange.betweenValues(time(2001), time(2300, 8, 1), 'century'));
+        expect(values).toEqual([ 'C21', 'C22' ]);
+
+        values = getToTexts(TimeRange.betweenValues(time(2019, 5, 13), time(2019, 6, 1), 'week'));
+        expect(values).toEqual([ '2019-W20', '2019-W21' ]);
     });
 });

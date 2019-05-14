@@ -10,7 +10,7 @@
  */
 
 
-const { timeStartEndToText, textToTimeStartEnd, addDurationToDateValue, roundDateValue, incDateValue } = require('./conversions');
+const { timeStartEndToText, textToTimeStartEnd, roundDateValue, incDateValue } = require('./conversions');
 const { dateValue } = require('./time');
 TimeInstant = require('./timeinstant');
 
@@ -144,15 +144,48 @@ module.exports = class TimeRange {
         return other.startValue >= this.endValue || other.endValue <= this.startValue;
     }
 
+    // overlaps
     intersects (other) {
         // raise if !this.sameTimeZone(other)
         return !this.isDisjoint(other);
     }
 
-    // overlaps, precedes, succeeds, before, after
-    // ends_before(t) starts_before(t) starts_after(t), ends after(t)
-    // => loop:
-    // for(let tr=TimeRange.fromStartDuration(t_start, dur, res), tr.ends_before(t_end); tr = tr.next())
+    // before
+    precedes (other) {
+        // raise if !this.sameTimeZone(other)
+        return other.startValue >= this.endValue;
+    }
+
+    // after
+    succeeds (other) {
+        // raise if !this.sameTimeZone(other)
+        return this.startValue >= other.endValue; // other.precedes(this);
+    }
+
+    startsBefore (value) {
+        return this.startValue < value;
+    }
+
+    endsBefore (value) {
+        return this.endValue <= value;
+    }
+
+    startsAfter (value) {
+        // raise if !this.sameTimeZone(other)
+        return this.startValue >= value;
+    }
+
+    endsAfter (value) {
+        // raise if !this.sameTimeZone(other)
+        return this.endValue > value;
+    }
+
+    static *betweenValues (startValue, endValue, resolution, duration = 1) {
+        let xx = TimeRange.fromStartDuration(startValue, duration, resolution);
+        for (let t = TimeRange.fromStartDuration(startValue, duration, resolution); t.endsBefore(endValue); t = t.next()) {
+            yield t;
+        }
+    }
 
     // largest interval contained in both this and other
     intersection (other) {
@@ -182,7 +215,7 @@ module.exports = class TimeRange {
     // adjoint upper TR with same duration & resolution (& timeZone)
     next () {
         const startValue = this.endValue;
-        const endValue = addDurationToDateValue(startValue, this.duration, this.resolution);
+        const endValue = incDateValue(startValue, this.resolution, this.duration);
         return TimeRange.fromStartEndValues(
             startValue,
             endValue,
@@ -195,7 +228,7 @@ module.exports = class TimeRange {
 
     prev () {
         const endValue = this.startValue;
-        const startValue = addDurationToDateValue(endValue, -this.duration, this.resolution);
+        const startValue = incDateValue(endValue, this.resolution, -this.duration);
         return TimeRange.fromStartEndValues(
             startValue,
             endValue,

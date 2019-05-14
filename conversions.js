@@ -272,12 +272,6 @@ function inc(components, level, delta = 1) {
     return normDate(...copy);
 }
 
-function baseDuration(duration, resolution) {
-    const length = FORMATTERS[resolution].numUnits;
-    const level = FORMATTERS[resolution].unit;
-    return [TIME_LEVELS[level], duration * length];
-}
-
 function invalidPeriod (period, invalid) {
     throw new Error(`Invalid ${invalid} period between ${period.v1} and ${period.v2}`);
 }
@@ -614,9 +608,6 @@ function timeStartEndToText (v1, v2, resolution=null, onlyCalendarUnit=true) {
     return handler.range(period, resolution, onlyCalendarUnit);
 }
 
-function addDurationToDateValue(value, duration, resolution) {
-    return dateValue(...inc(valueComponents(value), ...baseDuration(duration, resolution)));
-}
 
 function roundDateValue(value, resolution, mode='floor') {
     const components = valueComponents(value);
@@ -624,18 +615,29 @@ function roundDateValue(value, resolution, mode='floor') {
 }
 
 function roundDateComponents(components, resolution, rounding) {
-    const fmt = FORMATTERS[resolution];
-    let c0 = Object.keys(TIME_LEVELS).map(i => components[i] - TIME_STARTS[i]);
-    const excess = [c0[fmt.unit] % fmt.numUnits].concat(c0.slice(fmt.unit + 1));
-    if (excess.some(x => x > 0)) {
-        const n = rounding == 'floor' ? 0 : fmt.numUnits;
-        c0 = c0.slice(0, fmt.unit).concat([c0[fmt.unit] + n - excess[0]]);
-        components = Object.keys(c0).map(i => c0[i] + TIME_STARTS[i]);
+    if (resolution == 'week') {
+        const dow = isoDow (...components.slice(0,3));
+        const up = (rounding == 'ceil' && (dow > 1 || components.slice(3).some(c => c > 0)));
+        if (up) {
+            components = [components[0], components[1], components[2] + 8 - dow];
+        }
+        else {
+            components = [components[0], components[1], components[2] - dow + 1];
+        }
+    }
+    else {
+        const fmt = FORMATTERS[resolution];
+        let c0 = Object.keys(TIME_LEVELS).map(i => components[i] - TIME_STARTS[i]);
+        const excess = [c0[fmt.unit] % fmt.numUnits].concat(c0.slice(fmt.unit + 1));
+        if (excess.some(x => x > 0)) {
+            const n = rounding == 'floor' ? 0 : fmt.numUnits;
+            c0 = c0.slice(0, fmt.unit).concat([c0[fmt.unit] + n - excess[0]]);
+            components = Object.keys(c0).map(i => c0[i] + TIME_STARTS[i]);
+        }
     }
     return normDate(...components);
 }
 
-// FIXME: chose one of incDateValue, addDurationToDateValue
 function incDateValue(value, resolution, duration = 1) {
     const components = valueComponents(value);
     return dateValue(...incDateComponents(components, resolution, duration));
@@ -649,7 +651,6 @@ function incDateComponents(components, resolution, duration = 1) {
 module.exports = {
     textToTimeStartEnd,
     timeStartEndToText,
-    addDurationToDateValue,
     roundDateValue,
     incDateValue
 };
