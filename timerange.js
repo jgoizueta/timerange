@@ -7,6 +7,10 @@
  *   the time range, since the same interval can be interpreted at different resolutions
  *   (e.g. 1 year, 365 days, ...). The interval (start, end times) need to
  *   be consistent with the resolution units (lie at unit boundaries).
+ *   A TimeRange doesn't keep track of the time zone; all methods that involve multiple time
+ *   ranges or time instants assume they all share the same reference time zone.
+ *   The ordinal time values used here are UNIX-like epoch values, but we assume them to correspond to the reference time zone,
+ *   not necessarily UTC.
  */
 
 
@@ -26,57 +30,47 @@ function startEndTimeValues (value, attr) {
 }
 
 module.exports = class TimeRange {
-    constructor (tz, startValue, endValue, { text=null, iso=null, duration=null, resolution=null }) {
+    constructor (startValue, endValue, { text=null, iso=null, duration=null, resolution=null }) {
         this._text = text;
         this._iso = iso;
         this._startValue = startValue;
         this._endValue = endValue;
-        // The timezone of a TimeRange is merely informative.
-        // No time zone conversion is ever performed, e.g. when
-        // several ranges are used in the same linear expression.
-        // In same cases (e.g. defining a time range from a text constant)
-        // it may not be available.
-        this._timeZone = tz;
         this._resolution = resolution;
         this._duration = duration;
     }
 
-    static fromText (text, { timeZone=null }={}) {
-        return new TimeRange(timeZone, ...startEndTimeValues(text, 'text'));
+    static fromText (text) {
+        return new TimeRange(...startEndTimeValues(text, 'text'));
     }
 
-    static fromISO (iso, { timeZone=null }={}) {
-        return new TimeRange(timeZone, ...startEndTimeValues(iso, 'iso'));
+    static fromISO (iso) {
+        return new TimeRange(...startEndTimeValues(iso, 'iso'));
     }
 
-    static fromStartEndValues (startValue, endValue, { timeZone=null, resolution=null }={}) {
-        return new TimeRange(timeZone, startValue, endValue, { resolution });
+    static fromStartEndValues (startValue, endValue, resolution=null) {
+        return new TimeRange(startValue, endValue, { resolution });
     }
 
-    static fromStartEnd (start, end, { timeZone=null, resolution=null }={}) {
-        return TimeRange.fromStartEndValues(start.value, end.value, { timeZone, resolution });
+    static fromStartEnd (start, end, resolution=null) {
+        return TimeRange.fromStartEndValues(start.value, end.value, resolution);
     }
 
-    static fromStartValueDuration (startValue, duration, resolution, { adjust='floor', timeZone=null }={}) {
+    static fromStartValueDuration (startValue, duration, resolution, adjust='floor') {
         startValue = roundDateValue(startValue, resolution, adjust);
         const endValue = incDateValue(startValue, resolution, duration);
-        return TimeRange.fromStartEndValues(startValue, endValue, { timeZone, resolution });
+        return TimeRange.fromStartEndValues(startValue, endValue, resolution);
     }
 
-    static fromStartDuration (start, duration, resolution, { adjust='floor', timeZone=null }={}) {
-        return TimeRange.fromStartValueDuration(start.value, duration, resolution, { adjust, timeZone });
+    static fromStartDuration (start, duration, resolution, adjust='floor') {
+        return TimeRange.fromStartValueDuration(start.value, duration, resolution, adjust);
     }
 
     in(resolutionUnits) {
-        return TimeRange.fromStartEndValues(this._startValue, this._endValue, { timeZone: this._timeZone, resolution: resolutionUnits });
+        return TimeRange.fromStartEndValues(this._startValue, this._endValue, resolutionUnits);
     }
 
     get durationSeconds () {
         return (this._endValue - this._startValue)/1000;
-    }
-
-    get timeZone () {
-        return this._timeZone;
     }
 
     get text () {
@@ -152,35 +146,26 @@ module.exports = class TimeRange {
         return this._duration === 1;
     }
 
-    sameTimeZone(other) {
-        return this.timeZone === other.timeZone;
-    }
-
     contains (other) {
-        // raise if !this.sameTimeZone(other)
         return other.startValue >= this.startValue && other.endValue <= this.endValue;
     }
 
     isDisjoint (other) {
-        // raise if !this.sameTimeZone(other)
         return other.startValue >= this.endValue || other.endValue <= this.startValue;
     }
 
     // overlaps
     intersects (other) {
-        // raise if !this.sameTimeZone(other)
         return !this.isDisjoint(other);
     }
 
     // before
     precedes (other) {
-        // raise if !this.sameTimeZone(other)
         return other.startValue >= this.endValue;
     }
 
     // after
     succeeds (other) {
-        // raise if !this.sameTimeZone(other)
         return this.startValue >= other.endValue; // other.precedes(this);
     }
 
@@ -193,12 +178,10 @@ module.exports = class TimeRange {
     }
 
     startsAfter (value) {
-        // raise if !this.sameTimeZone(other)
         return this.startValue >= value;
     }
 
     endsAfter (value) {
-        // raise if !this.sameTimeZone(other)
         return this.endValue > value;
     }
 
@@ -214,14 +197,10 @@ module.exports = class TimeRange {
 
     // largest interval contained in both this and other
     intersection (other) {
-        // raise if !this.sameTimeZone(other)
         return TimeRange.fromStartEndValues(
             Math.max(this.startValue, other.startValue),
             Math.min(this.endValue, other.endValue),
-            {
-                timeZone: this.timeZone,
-                resolution: leastResolution(this.resolution, other.resolution)
-            }
+            leastResolution(this.resolution, other.resolution)
         );
     }
 
@@ -229,12 +208,8 @@ module.exports = class TimeRange {
         return TimeRange.fromStartEndValues(
             Math.min(this.startValue, other.startValue),
             Math.max(this.endValue, other.endValue),
-            {
-                timeZone: this.timeZone,
-                resolution: leastResolution(this.resolution, other.resolution)
-            }
+            leastResolution(this.resolution, other.resolution)
         );
-
     }
 
     // adjoint upper TR with same duration & resolution (& timeZone)
@@ -244,10 +219,7 @@ module.exports = class TimeRange {
         return TimeRange.fromStartEndValues(
             startValue,
             endValue,
-            {
-                timeZone: this.timeZone,
-                resolution: this.resolution
-            }
+            this.resolution
         );
     }
 
@@ -257,15 +229,12 @@ module.exports = class TimeRange {
         return TimeRange.fromStartEndValues(
             startValue,
             endValue,
-            {
-                timeZone: this.timeZone,
-                resolution: this.resolution
-            }
+            this.resolution
         );
     }
 
     equivalent (other) {
-        return this.sameTimeZone(other) && this.startValue == other.startValue && this.endValue == other.endValue;
+        return this.startValue == other.startValue && this.endValue == other.endValue;
     }
 
     identical (other) {

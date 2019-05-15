@@ -15,23 +15,15 @@ describe('TimeRange', () => {
         expect(t.text).toEqual('2018');
         expect(t.startValue).toEqual(time(2018));
         expect(t.endValue).toEqual(time(2019));
-        expect(t.start).toEqual(TimeInstant.fromComponents([2018]));
-        expect(t.end).toEqual(TimeInstant.fromComponents([2019]));
+        expect(t.start).toEqual(TimeInstant.fromComponents(2018));
+        expect(t.end).toEqual(TimeInstant.fromComponents(2019));
 
         t = TimeRange.fromText('2018..2019');
         expect(t.text).toEqual('2018..2019');
         expect(t.startValue).toEqual(time(2018));
         expect(t.endValue).toEqual(time(2020));
-        expect(t.start).toEqual(TimeInstant.fromComponents([2018]));
-        expect(t.end).toEqual(TimeInstant.fromComponents([2020]));
-    });
-    test('should keep time zone description', () => {
-        const t = TimeRange.fromText('2018', { timeZone: 'XXX' });
-        expect(t.startValue).toEqual(time(2018));
-        expect(t.endValue).toEqual(time(2019));
-        expect(t.start).toEqual(TimeInstant.fromTZ('XXX', 2018));
-        expect(t.end).toEqual(TimeInstant.fromTZ('XXX', 2019));
-        expect(t.timeZone).toEqual('XXX');
+        expect(t.start).toEqual(TimeInstant.fromComponents(2018));
+        expect(t.end).toEqual(TimeInstant.fromComponents(2020));
     });
     test('should compute iso format from text description', () => {
         let t = TimeRange.fromText('2018');
@@ -60,15 +52,15 @@ describe('TimeRange', () => {
     });
     test('can define resolution', () => {
         const start = time(2018), end = time(2020);
-        let t = TimeRange.fromStartEndValues(start, end, { resolution: 'year' });
+        let t = TimeRange.fromStartEndValues(start, end, 'year');
         expect(t.text).toEqual('2018..2019');
         expect(t.duration).toEqual(2);
         expect(t.resolution).toEqual('year');
-        t = TimeRange.fromStartEndValues(start, end, { resolution: 'month' });
+        t = TimeRange.fromStartEndValues(start, end, 'month');
         expect(t.text).toEqual('2018-01..2019-12');
         expect(t.duration).toEqual(24);
         expect(t.resolution).toEqual('month');
-        t = TimeRange.fromStartEndValues(start, end, { resolution: 'day' });
+        t = TimeRange.fromStartEndValues(start, end, 'day');
         expect(t.text).toEqual('2018-01-01..2019-12-31');
         expect(t.duration).toEqual(2*365);
         expect(t.resolution).toEqual('day');
@@ -117,10 +109,7 @@ describe('TimeRange', () => {
     test('inequality', () => {
         let t1 = TimeRange.fromText('2019Q1..2021Q1');
         let t2 = TimeRange.fromText('2019..2020');
-        let t3 = TimeRange.fromText('2019..2020', { timeZone: 'utc' });
         expect(t1.equivalent(t2)).toEqual(false);
         expect(t1.identical(t2)).toEqual(false);
-        expect(t2.equivalent(t3)).toEqual(false);
-        expect(t2.identical(t3)).toEqual(false);
     });
 });
