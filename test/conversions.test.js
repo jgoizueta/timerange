@@ -798,6 +798,22 @@ describe('roundDateValue', () => {
         expect(roundDateValue(time(2018,1,1), 'quarter', 'ceil')).toEqual(time(2018,1));
         expect(roundDateValue(time(2018,1,1,1), 'quarter', 'floor')).toEqual(time(2018,1));
         expect(roundDateValue(time(2018,1,1,1), 'quarter', 'ceil')).toEqual(time(2018,4));
+
+        expect(roundDateValue(time(2019,5,13), 'week', 'floor')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,13,13), 'week', 'floor')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,14), 'week', 'floor')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,19), 'week', 'floor')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,12,23), 'week', 'floor')).toEqual(time(2019,5,6));
+        expect(roundDateValue(time(2019,5,20), 'week', 'floor')).toEqual(time(2019,5,20));
+
+        expect(roundDateValue(time(2019,5,13), 'week', 'ceil')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,13,13), 'week', 'ceil')).toEqual(time(2019,5,20));
+        expect(roundDateValue(time(2019,5,14), 'week', 'ceil')).toEqual(time(2019,5,20));
+        expect(roundDateValue(time(2019,5,19), 'week', 'ceil')).toEqual(time(2019,5,20));
+        expect(roundDateValue(time(2019,5,12,23), 'week', 'ceil')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,6,0,0,1), 'week', 'ceil')).toEqual(time(2019,5,13));
+        expect(roundDateValue(time(2019,5,20), 'week', 'ceil')).toEqual(time(2019,5,20));
+
     });
 });
 
