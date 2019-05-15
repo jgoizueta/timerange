@@ -300,6 +300,10 @@ function invalidResolution (period, forcedResolution) {
     throw new Error(`Invalid forced resolution ${forcedResolution} for period between ${period.v1} and ${period.v2}`);
 }
 
+function invalidFormat (text) {
+    throw new Error(`Invalid time format: ${text}`);
+}
+
 // Return year and week number given year and day number
 function yearWeek (y, yd) {
     const dow = isoDow(y, 1, 1);
@@ -593,7 +597,7 @@ function textToTimeStartEnd (iso) {
     }
     const startParser = findParser(isoStart);
     if (!startParser) {
-        throw new Error(`No date parser found for ${iso}`);
+        invalidFormat(iso);
     }
     let { start, end, resolution } = startParser.parse(isoStart);
     if (isoEnd && isoEnd !== isoStart) {
@@ -604,7 +608,7 @@ function textToTimeStartEnd (iso) {
         }
         const endParser = findParser(isoEnd);
         if (!endParser) {
-            throw new Error(`No date parser found for ${iso}`);
+            invalidFormat(iso);
         }
         const endPeriod = endParser.parse(isoEnd);
         end = abbr ? endPeriod.end : endPeriod.start;
