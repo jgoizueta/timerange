@@ -12,7 +12,6 @@ const { timeStartEndToText } = require('./conversions');
 // not even to/from UTC.
 module.exports = class TimeInstant {
     constructor (milliseconds) {
-        this._value = milliseconds;
         this._date = msToDate(milliseconds);
     }
     static fromValue (milliseconds) {
@@ -26,11 +25,12 @@ module.exports = class TimeInstant {
     // }
 
     get value () {
-        return this._value;
+        return this._date.getTime();
     }
 
     get components () {
-        return valueComponents(this._value);
+        // return valueComponents(this._date);
+        return [this.year, this.month, this.day, this.hour, this.minute, this.second];
     }
 
     get year () {
@@ -52,6 +52,7 @@ module.exports = class TimeInstant {
         return this._date.getUTCSeconds();
     }
     get text () {
-        return timeStartEndToText(this._value, this._value + 1000).iso;
+        const value = this.value;
+        return timeStartEndToText(value, value + 1000).iso;
     }
 }
