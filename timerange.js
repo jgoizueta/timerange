@@ -64,7 +64,7 @@ module.exports = class TimeRange {
     }
 
     static fromStartDuration (start, duration, resolution, { adjust='floor', timeZone=null }={}) {
-        return TimeRange.fromStartValueDuration(start.value, duration, resolution, { adjusdt, timeZone });
+        return TimeRange.fromStartValueDuration(start.value, duration, resolution, { adjust, timeZone });
     }
 
     in(resolutionUnits) {

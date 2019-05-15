@@ -17,10 +17,10 @@ module.exports = class TimeInstant {
         this._date = msToDate(milliseconds);
         this._timeZone = tz; // informational
     }
-    static fromValue (milliseconds, tz) {
+    static fromValue (milliseconds, tz = null) {
         return new TimeInstant(milliseconds, tz);
     }
-    static fromComponents (components, tz) {
+    static fromComponents (components, tz = null) {
         return this.fromValue(dateValue(...components), tz);
     }
     // static fromUTCDate (date) {

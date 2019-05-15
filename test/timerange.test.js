@@ -104,7 +104,7 @@ describe('TimeRange', () => {
     test('unions', () => {
         let t1 = TimeRange.fromText('2019Q1..2019Q2')
         let t2 = TimeRange.fromText('2019Q4')
-        expect(t1.union(t2).text).toEqual('2019-Q1..2019..Q4');
+        expect(t1.union(t2).text).toEqual('2019-Q1..4');
     });
     test('equality', () => {
         let t1 = TimeRange.fromText('2019Q1..2020Q4');
@@ -117,7 +117,7 @@ describe('TimeRange', () => {
     test('inequality', () => {
         let t1 = TimeRange.fromText('2019Q1..2021Q1');
         let t2 = TimeRange.fromText('2019..2020');
-        let t3 = TimeRange.fromText('2019..2020', timeZone='utc');
+        let t3 = TimeRange.fromText('2019..2020', { timeZone: 'utc' });
         expect(t1.equivalent(t2)).toEqual(false);
         expect(t1.identical(t2)).toEqual(false);
         expect(t2.equivalent(t3)).toEqual(false);
