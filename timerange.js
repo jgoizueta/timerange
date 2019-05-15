@@ -10,7 +10,7 @@
  */
 
 
-const { timeStartEndToText, textToTimeStartEnd, roundDateValue, incDateValue } = require('./conversions');
+const { timeStartEndToText, textToTimeStartEnd, roundDateValue, incDateValue, compareResolutions } = require('./conversions');
 const { dateValue } = require('./time');
 TimeInstant = require('./timeinstant');
 
@@ -205,7 +205,7 @@ module.exports = class TimeRange {
             Math.min(this.endValue, other.endValue),
             {
                 timeZone: this.timeZone,
-                resolution: TimeRange.minResolutoin(this.resolution, other.resolution)
+                resolution: TimeRange.minResolution(this.resolution, other.resolution)
             }
         );
     }
@@ -249,4 +249,7 @@ module.exports = class TimeRange {
         );
     }
 
+    static minResolution(r1, r2) {
+        return compareResolutions(r1, r2) < 0 ? r1 : r2;
+    }
 }

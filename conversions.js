@@ -46,6 +46,9 @@ class YearBasedFormatter extends Formatter {
     _period (year) {
         return this.base + (year - this.base) / this.numUnits;
     }
+    refDuration() {
+        return this.numUnits * 365 * MS_PER_DAY;
+    }
 }
 
 class MillenniumFormatter extends YearBasedFormatter {
@@ -104,6 +107,9 @@ class MonthBasedFormatter extends Formatter {
     }
     _period (month) {
         return 1 + (month - 1) / this.numUnits;
+    }
+    refDuration() {
+        return this.numUnits * 30 * MS_PER_DAY;
     }
 }
 class SemesterFormatter extends MonthBasedFormatter {
@@ -187,6 +193,9 @@ class WeekFormatter extends Formatter {
 
         return isoWeek(iy, w);
     }
+    refDuration() {
+        return 7 * MS_PER_DAY;
+    }
 }
 
 class YMDHMSFormatter extends Formatter {
@@ -212,7 +221,9 @@ class DayFormatter extends YMDHMSFormatter {
     format (year, month, day) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}`;
     }
-
+    refDuration() {
+        return MS_PER_DAY;
+    }
 }
 
 class HourFormatter extends YMDHMSFormatter {
@@ -221,6 +232,9 @@ class HourFormatter extends YMDHMSFormatter {
     }
     format (year, month, day, hour) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}`;
+    }
+    refDuration() {
+        return MS_PER_HOUR;
     }
 }
 
@@ -231,6 +245,9 @@ class MinuteFormatter extends YMDHMSFormatter {
     format (year, month, day, hour, minute) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}`;
     }
+    refDuration() {
+        return MS_PER_MINUTE;
+    }
 }
 
 class SecondFormatter extends YMDHMSFormatter {
@@ -239,6 +256,9 @@ class SecondFormatter extends YMDHMSFormatter {
     }
     format (year, month, day, hour, minute, second) {
         return `${pad(year, 4)}-${pad(month, 2)}-${pad(day, 2)}T${pad(hour, 2)}:${pad(minute, 2)}:${pad(second, 2)}`;
+    }
+    refDuration() {
+        return MS_PER_SECOND;
     }
 }
 
@@ -648,9 +668,16 @@ function incDateComponents(components, resolution, duration = 1) {
     return inc(components, fmt.unit, duration * fmt.numUnits);
 }
 
+function compareResolutions(unit1, unit2) {
+    const d1 = FORMATTERS[unit1].refDuration();
+    const d2 = FORMATTERS[unit2].refDuration();
+    return d1 < d2 ? -1 : d1 > d2 ? 1 : 0;
+}
+
 module.exports = {
     textToTimeStartEnd,
     timeStartEndToText,
     roundDateValue,
+    compareResolutions,
     incDateValue
 };
