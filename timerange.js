@@ -14,7 +14,13 @@
  */
 
 
-const { timeStartEndToText, textToTimeStartEnd, roundDateValue, incDateValue, compareResolutions } = require('./conversions');
+const {
+    timeStartEndToText,
+    textToTimeStartEnd,
+    roundDateValue,
+    incDateValue,
+    leastResolution
+} = require('./conversions');
 const { dateValue } = require('./time');
 TimeInstant = require('./timeinstant');
 
@@ -23,14 +29,8 @@ function startEndTimeValues (value, attr) {
     return [dateValue(...start), dateValue(...end), { resolution, [attr]: value }];
 }
 
-function minResolution(r1, r2) {
-    return compareResolutions(r1, r2) < 0 ? r1 : r2;
-}
-
-
 module.exports = class TimeRange {
     constructor (startValue, endValue, { text=null, iso=null, duration=null, resolution=null }) {
-        // TODO: support empty TR when startValue >= endValue
         this._text = text;
         this._iso = iso;
         this._startValue = startValue;
@@ -200,7 +200,7 @@ module.exports = class TimeRange {
         return TimeRange.fromStartEndValues(
             Math.max(this.startValue, other.startValue),
             Math.min(this.endValue, other.endValue),
-            minResolution(this.resolution, other.resolution)
+            leastResolution(this.resolution, other.resolution)
         );
     }
 
@@ -208,9 +208,8 @@ module.exports = class TimeRange {
         return TimeRange.fromStartEndValues(
             Math.min(this.startValue, other.startValue),
             Math.max(this.endValue, other.endValue),
-            minResolution(this.resolution, other.resolution)
+            leastResolution(this.resolution, other.resolution)
         );
-
     }
 
     // adjoint upper TR with same duration & resolution (& timeZone)

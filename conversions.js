@@ -674,10 +674,20 @@ function compareResolutions(unit1, unit2) {
     return d1 < d2 ? -1 : d1 > d2 ? 1 : 0;
 }
 
+function leastResolution(r1, r2) {
+    return compareResolutions(r1, r2) < 0 ? r1 : r2;
+}
+
+function greatestResolution(r1, r2) {
+    return compareResolutions(r1, r2) > 0 ? r1 : r2;
+}
+
 module.exports = {
     textToTimeStartEnd,
     timeStartEndToText,
     roundDateValue,
+    compareResolutions,
+    leastResolution,
     compareResolutions,
     incDateValue
 };
