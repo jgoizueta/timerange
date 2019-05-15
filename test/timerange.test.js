@@ -117,7 +117,10 @@ describe('TimeRange', () => {
     test('inequality', () => {
         let t1 = TimeRange.fromText('2019Q1..2021Q1');
         let t2 = TimeRange.fromText('2019..2020');
+        let t3 = TimeRange.fromText('2019..2020', timeZone='utc');
         expect(t1.equivalent(t2)).toEqual(false);
         expect(t1.identical(t2)).toEqual(false);
+        expect(t2.equivalent(t3)).toEqual(false);
+        expect(t2.identical(t3)).toEqual(false);
     });
 });

@@ -265,7 +265,7 @@ module.exports = class TimeRange {
     }
 
     equivalent (other) {
-        return this.startValue == other.startValue && this.endValue == other.endValue;
+        return this.sameTimeZone(other) && this.startValue == other.startValue && this.endValue == other.endValue;
     }
 
     identical (other) {
