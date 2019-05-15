@@ -101,4 +101,23 @@ describe('TimeRange', () => {
         let t = TimeRange.fromStartEndValues(time(2017,4,3), time(2019,5,3,13,32));
         expect(t.text).toEqual('2017-04-03T00:00..2019-05-03T13:31');
     });
+    test('unions', () => {
+        let t1 = TimeRange.fromText('2019Q1..2019Q2')
+        let t2 = TimeRange.fromText('2019Q4')
+        expect(t1.union(t2).text).toEqual('2019-Q1..2019..Q4');
+    });
+    test('equality', () => {
+        let t1 = TimeRange.fromText('2019Q1..2020Q4');
+        let t2 = TimeRange.fromText('2019..2020');
+        expect(t1.equivalent(t1)).toEqual(true);
+        expect(t1.identical(t1)).toEqual(true);
+        expect(t1.equivalent(t2)).toEqual(true);
+        expect(t1.identical(t2)).toEqual(false);
+    });
+    test('inequality', () => {
+        let t1 = TimeRange.fromText('2019Q1..2021Q1');
+        let t2 = TimeRange.fromText('2019..2020');
+        expect(t1.equivalent(t2)).toEqual(false);
+        expect(t1.identical(t2)).toEqual(false);
+    });
 });

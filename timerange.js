@@ -19,6 +19,11 @@ function startEndTimeValues (value, attr) {
     return [dateValue(...start), dateValue(...end), { resolution, [attr]: value }];
 }
 
+function minResolution(r1, r2) {
+    return compareResolutions(r1, r2) < 0 ? r1 : r2;
+}
+
+
 module.exports = class TimeRange {
     constructor (tz, startValue, endValue, { text=null, iso=null, duration=null, resolution=null }) {
         // TODO: support empty TR wnen startValue >= endValue
@@ -215,18 +220,18 @@ module.exports = class TimeRange {
             Math.min(this.endValue, other.endValue),
             {
                 timeZone: this.timeZone,
-                resolution: TimeRange.minResolution(this.resolution, other.resolution)
+                resolution: minResolution(this.resolution, other.resolution)
             }
         );
     }
 
-    union () { // envelope, hull, extension, ... (smallest interval containing both this and other)
+    union (other) { // envelope, hull, extension, ... (smallest interval containing both this and other)
         return TimeRange.fromStartEndValues(
             Math.min(this.startValue, other.startValue),
-            Math.min(this.endValue, other.endValue),
+            Math.max(this.endValue, other.endValue),
             {
                 timeZone: this.timeZone,
-                resolution: TimeRange.minResolution(this.resolution, other.resolution)
+                resolution: minResolution(this.resolution, other.resolution)
             }
         );
 
@@ -259,7 +264,11 @@ module.exports = class TimeRange {
         );
     }
 
-    static minResolution(r1, r2) {
-        return compareResolutions(r1, r2) < 0 ? r1 : r2;
+    equivalent (other) {
+        return this.startValue == other.startValue && this.endValue == other.endValue;
+    }
+
+    identical (other) {
+        return this.equivalent(other) && this.resolution == other.resolution;
     }
 }
