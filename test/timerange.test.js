@@ -86,4 +86,19 @@ describe('TimeRange', () => {
         values = getToTexts(TimeRange.betweenValues(time(2019, 5, 13), time(2019, 6, 1), 'week'));
         expect(values).toEqual([ '2019-W20', '2019-W21' ]);
     });
+
+    test('intersections', () => {
+        let t1 = TimeRange.fromText('2019Q1..2019Q3')
+        let t2 = TimeRange.fromText('2019S2')
+        expect(t1.intersects(t2)).toEqual(true);
+        expect(t1.intersection(t2).text).toEqual('2019-Q3')
+        let t3 = TimeRange.fromText('2019Q4')
+        expect(t1.intersects(t3)).toEqual(false);
+        expect(t1.intersection(t3).isEmpty).toEqual(true);
+        expect(t1.intersection(t3).text).toEqual('');
+    });
+    test('can define with different resolutions', () => {
+        let t = TimeRange.fromStartEndValues(time(2017,4,3), time(2019,5,3,13,32));
+        expect(t.text).toEqual('2017-04-03T00:00..2019-05-03T13:31');
+    });
 });
