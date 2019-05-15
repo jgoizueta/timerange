@@ -18,7 +18,7 @@ module.exports = class TimeInstant {
     static fromValue (milliseconds) {
         return new TimeInstant(milliseconds);
     }
-    static fromComponents (components) {
+    static fromComponents (...components) {
         return this.fromValue(dateValue(...components));
     }
     // static fromUTCDate (date) {

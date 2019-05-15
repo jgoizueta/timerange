@@ -15,15 +15,15 @@ describe('TimeRange', () => {
         expect(t.text).toEqual('2018');
         expect(t.startValue).toEqual(time(2018));
         expect(t.endValue).toEqual(time(2019));
-        expect(t.start).toEqual(TimeInstant.fromComponents([2018]));
-        expect(t.end).toEqual(TimeInstant.fromComponents([2019]));
+        expect(t.start).toEqual(TimeInstant.fromComponents(2018));
+        expect(t.end).toEqual(TimeInstant.fromComponents(2019));
 
         t = TimeRange.fromText('2018..2019');
         expect(t.text).toEqual('2018..2019');
         expect(t.startValue).toEqual(time(2018));
         expect(t.endValue).toEqual(time(2020));
-        expect(t.start).toEqual(TimeInstant.fromComponents([2018]));
-        expect(t.end).toEqual(TimeInstant.fromComponents([2020]));
+        expect(t.start).toEqual(TimeInstant.fromComponents(2018));
+        expect(t.end).toEqual(TimeInstant.fromComponents(2020));
     });
     test('should compute iso format from text description', () => {
         let t = TimeRange.fromText('2018');
