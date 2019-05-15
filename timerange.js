@@ -81,12 +81,22 @@ module.exports = class TimeRange {
         return this._text;
     }
 
+    get isEmpty () {
+        return this._startValue >= this._endValue;
+    }
+
     _set () {
-        const { iso, resolution, abbr, duration } = timeStartEndToText(this._startValue, this._endValue, this._resolution, false);
-        this._iso = iso;
-        this._text = abbr;
-        this._duration = duration;
-        this._resolution = resolution;
+        if (this.isEmpty) {
+            this._iso = this._text = '';
+            this._duration = 0;
+        }
+        else {
+            const { iso, resolution, abbr, duration } = timeStartEndToText(this._startValue, this._endValue, this._resolution, false);
+            this._iso = iso;
+            this._text = abbr;
+            this._duration = duration;
+            this._resolution = resolution;
+        }
     }
 
     get iso () {
