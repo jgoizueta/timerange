@@ -8,7 +8,8 @@
   "author": "jgoizueta@gmail.com",
   "license": "BSD3",
   "devDependencies": {
-    "eslint": "^5.12.0"
+    "eslint": "^5.12.0",
+    "jest": "^23.6.0"
   },
   "scripts": {
     "test": "jest"
