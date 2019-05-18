@@ -83,9 +83,13 @@ module.exports = class TimeRange {
 
     /**
      * Construct a TimeRange from start and end epoch values in milliseconds.
+     * Valid resolution values: millennium', 'century', 'decade', 'year', 'semester',
+     * 'trimester', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second'.
      *
      * @param {Number} startValue - start of the range as elapsed milliseconds since a timezone-specific epoch
      * @param {Number} endValue - end of the range as elapsed milliseconds since a timezone-specific epoch
+     * @param {String} resolution - optional units of resolution. Start and end should respect its boundaries.
+     * If this is not specified, the largest possible resolution not interrupted by the start or end will be used.
      * @return {TimeRange}
      * @api
      */
@@ -98,6 +102,7 @@ module.exports = class TimeRange {
      *
      * @param {TimeInstant} start - start of the range
      * @param {TimeInstant} end - end of the range
+     * @param {String} resolution - optional units of resolution; see fromStartEndValues.*
      * @return {TimeRange}
      * @api
      */
@@ -122,7 +127,8 @@ module.exports = class TimeRange {
     }
 
     /**
-     * Construct a TimeRange from start and duration
+     * Construct a TimeRange from start and duration.
+     * If the resolution is not specified,
      *
      * @param {TimeInstant} start - start of the range
      * @param {Number} duration - number of units of resolution in the period
@@ -212,23 +218,56 @@ module.exports = class TimeRange {
         }
     }
 
+    /**
+     * Start of the interval (inclusive) as elapsed milliseconds since a timezone-specific epoch
+     *
+     * @return {Number}
+     * @api
+     */
     get startValue () {
         return this._startValue;
     }
 
+    /**
+     * End of the interval (exclusive) as elapsed milliseconds since a timezone-specific epoch
+     *
+     * @return {Number}
+     * @api
+     */
     get endValue () {
         return this._endValue;
     }
 
+    /**
+     * Start of the interval (inclusive) as TimeInstant
+     *
+     * @return {TimeInstant}
+     * @api
+     */
     get start () {
         return TimeInstant.fromValue(this._startValue, this._timeZone);
     }
 
+    /**
+     * End of the interval (exclusive) as TimeInstant
+     *
+     * @return {TimeInstant}
+     * @api
+     */
     get end () {
         return TimeInstant.fromValue(this._endValue, this._timeZone);
     }
 
     // Calendar resolution: the range is delimited by these calendar units
+    /**
+     * Calendar units of resolution of the time range; the limits (start and end)
+     * should not break such units.
+     * Possible values: 'millennium', 'century', 'decade', 'year', 'semester',
+     * 'trimester', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second'.
+     *
+     * @return {String}
+     * @api
+     */
     get resolution () {
         if (this._resolution === null) {
             this._set();
@@ -236,8 +275,14 @@ module.exports = class TimeRange {
         return this._resolution;
     }
 
-    // Duration in calendar resolution units. 1 for single calendar units
-    // (largest possible resolution not crossing calendar boundaries)
+
+    /**
+     * Duration of the time range in the calendar units of resolution.
+     * This returns 1 for single-calendar-unit ranges.
+     *
+     * @return {Number}
+     * @api
+     */
     get duration () {
         if (this._duration === null) {
             this._set();
@@ -245,7 +290,12 @@ module.exports = class TimeRange {
         return this._duration;
     }
 
-    // Is a single calendar unit?
+    /**
+     * Is the time range a single calendar unit?
+     *
+     * @return {Boolean}
+     * @api
+     */
     get isCalendarUnit () {
         if (this._duration === null) {
             this._set();
@@ -253,56 +303,143 @@ module.exports = class TimeRange {
         return this._duration === 1;
     }
 
+    /**
+     * Does the time range contains completely another time range?
+     *
+     * @param {TimeRange} other - time range to be checked for inclusion
+     * @return {Boolean} True if other completely within this range
+     * @api
+     */
     contains (other) {
         return other.startValue >= this.startValue && other.endValue <= this.endValue;
     }
 
+    /**
+     * Are two time ranges disjoint (non-overlapping)?
+     *
+     * @param {TimeRange} other - time range to be checked for intersection
+     * @return {Boolean} True if this and the other ranges do not overlap
+     * @api
+     */
     isDisjoint (other) {
         return other.startValue >= this.endValue || other.endValue <= this.startValue;
     }
 
-    // overlaps
+    /**
+     * Do two time ranges intersect (overlap)?
+     *
+     * @param {TimeRange} other - time range to be checked for intersection
+     * @return {Boolean} True if this and the other ranges overlap
+     * @api
+     */
     intersects (other) {
         return !this.isDisjoint(other);
     }
 
-    // before
+    /**
+     * Does this range precedes (occurs before) another?
+     *
+     * @param {TimeRange} other - time range to be checked
+     * @return {Boolean} True if this range ends before the start of the other
+     * @api
+     */
     precedes (other) {
         return other.startValue >= this.endValue;
     }
 
-    // after
+    /**
+     * Does this range succeeds (occurs after) another?
+     *
+     * @param {TimeRange} other - time range to be checked
+     * @return {Boolean} True if this range starts after the end of the other
+     * @api
+     */
     succeeds (other) {
         return this.startValue >= other.endValue; // other.precedes(this);
     }
 
+    /**
+     * Does this range starts before a time instant value?
+     *
+     * @param {Number} value - time instant as elapsed milliseconds since a timezone-specific epoch
+     * @return {Boolean} True if this range starts before the instant
+     * @api
+     */
     startsBefore (value) {
         return this.startValue < value;
     }
 
+    /**
+     * Does this range ends before a time instant value?
+     *
+     * @param {Number} value - time instant as elapsed milliseconds since a timezone-specific epoch
+     * @return {Boolean} True if this range ends before the instant
+     * @api
+     */
     endsBefore (value) {
         return this.endValue <= value;
     }
 
+    /**
+     * Does this range starts after a time instant value?
+     *
+     * @param {Number} value - time instant as elapsed milliseconds since a timezone-specific epoch
+     * @return {Boolean} True if this range starts after the instant
+     * @api
+     */
     startsAfter (value) {
         return this.startValue >= value;
     }
 
+    /**
+     * Does this range ends after a time instant value?
+     *
+     * @param {Number} value - time instant as elapsed milliseconds since a timezone-specific epoch
+     * @return {Boolean} True if this range ends after the instant
+     * @api
+     */
     endsAfter (value) {
         return this.endValue > value;
     }
 
+    /**
+     * Generator of all consecutive time ranges between two instant values.
+     *
+     * @param {Number} startValue - start time instant as elapsed milliseconds since a timezone-specific epoch
+     * @param {Number} endValue - end time instant (returned ranges will not reach this time)
+     * @param {String} resolution - resolution of the returned ranges
+     * @param {String} duration - duration of the ranges (in the resolution units); by default 1.
+     * @return {TimeRange} True if this range ends after the instant
+     * @api
+     */
     static *betweenValues (startValue, endValue, resolution, duration = 1) {
         for (let t = TimeRange.fromStartValueDuration(startValue, duration, resolution); t.endsBefore(endValue); t = t.next()) {
             yield t;
         }
     }
 
+    /**
+     * Generator of all consecutive time ranges between two instants.
+     *
+     * @param {TimeInstant} start - start time instant
+     * @param {TimeInstant} end - end time instant (returned ranges will not reach this time)
+     * @param {String} resolution - resolution of the returned ranges
+     * @param {String} duration - duration of the ranges (in the resolution units); by default 1.
+     * @return {TimeRange} True if this range ends after the instant
+     * @api
+     */
     static *between (start, end, resolution, duration = 1) {
         return betweenValues(start.value, end.value, resolution, duration);
     }
 
-    // largest interval contained in both this and other
+    /**
+     * Intersection of two ranges: largest interval contained in both ranges
+     * (empty if they don't overlap).
+     *
+     * @param {TimeRange} other - time range to intersect with this one
+     * @return {TimeRange} Intersection range
+     * @api
+     */
     intersection (other) {
         return TimeRange.fromStartEndValues(
             Math.max(this.startValue, other.startValue),
@@ -311,7 +448,14 @@ module.exports = class TimeRange {
         );
     }
 
-    union (other) { // envelope, hull, extension, ... (smallest interval containing both this and other)
+    /**
+     * Union (envelope/hull) of two ranges: smallest interval containing both ranges
+     *
+     * @param {TimeRange} other - time range to combine with this one
+     * @return {TimeRange} union range
+     * @api
+     */
+    union (other) {
         return TimeRange.fromStartEndValues(
             Math.min(this.startValue, other.startValue),
             Math.max(this.endValue, other.endValue),
@@ -319,7 +463,12 @@ module.exports = class TimeRange {
         );
     }
 
-    // adjoint upper TR with same duration & resolution (& timeZone)
+    /**
+     * Following adjacent time range with same duration and resolution
+     *
+     * @return {TimeRange} next range
+     * @api
+     */
     next () {
         const startValue = this.endValue;
         const endValue = incDateValue(startValue, this.resolution, this.duration);
@@ -330,6 +479,12 @@ module.exports = class TimeRange {
         );
     }
 
+    /**
+     * Preceding adjacent time range with same duration and resolution
+     *
+     * @return {TimeRange} previous range
+     * @api
+     */
     prev () {
         const endValue = this.startValue;
         const startValue = incDateValue(endValue, this.resolution, -this.duration);
@@ -340,10 +495,25 @@ module.exports = class TimeRange {
         );
     }
 
+    /**
+     * Are two ranges equal (same start and end instants)?
+     * Note they could have different nominal resolutions.
+     *
+     * @param {TimeRange} other - time range to be compared with this one
+     * @return {Boolean} True if ranges are equivalent
+     * @api
+     */
     equivalent (other) {
         return this.startValue == other.startValue && this.endValue == other.endValue;
     }
 
+    /**
+     * Are two ranges identical (same start, end and resolution)?
+     *
+     * @param {TimeRange} other - time range to be compared with this one
+     * @return {Boolean} True if ranges are identical
+     * @api
+     */
     identical (other) {
         return this.equivalent(other) && this.resolution == other.resolution;
     }
