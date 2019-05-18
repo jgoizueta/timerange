@@ -112,4 +112,16 @@ describe('TimeRange', () => {
         expect(t1.equivalent(t2)).toEqual(false);
         expect(t1.identical(t2)).toEqual(false);
     });
-});
+    test('next', () => {
+       expect(TimeRange.fromText('2017-12').next().text).toEqual('2018-01');
+       expect(TimeRange.fromText('2017-10..11').next().text).toEqual('2017-12..2018-01');
+       expect(TimeRange.fromText('2017W51').next().text).toEqual('2017-W52');
+       expect(TimeRange.fromText('2017W52').next().text).toEqual('2018-W01');
+    });
+    test('prev', () => {
+        expect(TimeRange.fromText('2018-01').prev().text).toEqual('2017-12');
+        expect(TimeRange.fromText('2017-12..2018-01').prev().text).toEqual('2017-10..11');
+        expect(TimeRange.fromText('2017W52').prev().text).toEqual('2017-W51');
+        expect(TimeRange.fromText('2018W01').prev().text).toEqual('2017-W52');
+     });
+ });
