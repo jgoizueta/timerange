@@ -65,7 +65,7 @@ describe('TimeRange', () => {
         expect(t.duration).toEqual(2*365);
         expect(t.resolution).toEqual('day');
     });
-    test('can iterate times', () => {
+    test('can iterate between time values', () => {
         let values = getToTexts(TimeRange.betweenValues(time(2019, 5, 1), time(2019, 8, 1), 'month'));
         expect(values).toEqual([ '2019-05', '2019-06', '2019-07' ]);
 
@@ -78,7 +78,19 @@ describe('TimeRange', () => {
         values = getToTexts(TimeRange.betweenValues(time(2019, 5, 13), time(2019, 6, 1), 'week'));
         expect(values).toEqual([ '2019-W20', '2019-W21' ]);
     });
+    test('can iterate between time instants', () => {
+        let values = getToTexts(TimeRange.between(TimeInstant.fromComponents(2019, 5, 1), TimeInstant.fromComponents(2019, 8, 1), 'month'));
+        expect(values).toEqual([ '2019-05', '2019-06', '2019-07' ]);
 
+        values = getToTexts(TimeRange.between(TimeInstant.fromComponents(2019, 4), TimeInstant.fromComponents(2020, 8, 1), 'quarter'));
+        expect(values).toEqual([ '2019-Q2', '2019-Q3', '2019-Q4', '2020-Q1', '2020-Q2' ]);
+
+        values = getToTexts(TimeRange.between(TimeInstant.fromComponents(2001), TimeInstant.fromComponents(2300, 8, 1), 'century'));
+        expect(values).toEqual([ 'C21', 'C22' ]);
+
+        values = getToTexts(TimeRange.between(TimeInstant.fromComponents(2019, 5, 13), TimeInstant.fromComponents(2019, 6, 1), 'week'));
+        expect(values).toEqual([ '2019-W20', '2019-W21' ]);
+    });
     test('intersections', () => {
         let t1 = TimeRange.fromText('2019Q1..2019Q3')
         let t2 = TimeRange.fromText('2019S2')
