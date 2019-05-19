@@ -1,6 +1,6 @@
 {
   "name": "@jgoizueta/timerange",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Time ranges",
   "main": "index.js",
   "repository": "https://github.com/jgoizueta/timerange",
