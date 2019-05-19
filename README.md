@@ -3,7 +3,7 @@
 A class to represent time ranges (interval of time between to instants).
 
 ```javascript
-const TimeRange = require('timerange');
+const { TimeRange } = require('@jgoizueta/timerange');
 
 const t = TimeRange.fromText('2018-03');
 console.log(t.next().text);

@@ -1,5 +1,5 @@
-const TimeRange = require('../timerange');
-const TimeInstant = require('../timeinstant');
+const TimeRange = require('../lib/timerange');
+const TimeInstant = require('../lib/timeinstant');
 
 function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
     return Date.UTC(y, m - 1, d, h, min, sec);
