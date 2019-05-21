@@ -1,3 +1,6 @@
+2019-05-21 v1.3.0
+  * New TimeInstant round function
+
 2019-05-21 v1.2.0
   * New TimeInstant constructors for the current time
 
