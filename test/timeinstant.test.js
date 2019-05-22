@@ -84,7 +84,7 @@ describe('TimeInstant', () => {
         ).toEqual('2018-01-01T00:00:00');
         expect(
             TimeInstant.fromText('2018-04-12T13:34:42').round('decade').text
-        ).toEqual('2011-01-01T00:00:00');
+        ).toEqual('2010-01-01T00:00:00');
         expect(
             TimeInstant.fromText('2018-04-12T13:34:42').round('century').text
         ).toEqual('2001-01-01T00:00:00');
@@ -125,7 +125,7 @@ describe('TimeInstant', () => {
        ).toEqual('2018-07-01T00:00:00');
        expect(
            TimeInstant.fromText('2018-04-12T13:34:42').round('decade', 'ceil').text
-       ).toEqual('2021-01-01T00:00:00');
+       ).toEqual('2020-01-01T00:00:00');
        expect(
            TimeInstant.fromText('2018-04-12T13:34:42').round('century', 'ceil').text
        ).toEqual('2101-01-01T00:00:00');
