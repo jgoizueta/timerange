@@ -1,3 +1,7 @@
+2019-05-22 v1.4.0
+  * New functions compareResolutions, leastResolution, greatestResolution
+  * Bug fix: decade rounding
+
 2019-05-21 v1.3.0
   * New TimeInstant round function
 
