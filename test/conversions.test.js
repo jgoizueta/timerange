@@ -1,4 +1,11 @@
-const { timeStartEndToText, textToTimeStartEnd, roundDateValue } = require('../lib/conversions');
+const {
+    timeStartEndToText,
+    textToTimeStartEnd,
+    roundDateValue,
+    compareResolutions,
+    leastResolution,
+    greatestResolution
+} = require('../lib/conversions');
 
 function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
     return Date.UTC(y, m - 1, d, h, min, sec);
@@ -817,3 +824,57 @@ describe('roundDateValue', () => {
     });
 });
 
+
+
+describe('resolution comparisons', () => {
+    test('least resolution', () => {
+        expect(leastResolution('millennium', 'millennium')).toEqual('millennium');
+        expect(leastResolution('millennium', 'century')).toEqual('century');
+        expect(leastResolution('century', 'millennium')).toEqual('century');
+        expect(leastResolution('millennium', 'decade')).toEqual('decade');
+        expect(leastResolution('millennium', 'year')).toEqual('year');
+        expect(leastResolution('year', 'millennium')).toEqual('year');
+        expect(leastResolution('millennium', 'second')).toEqual('second');
+        expect(leastResolution('year', 'month')).toEqual('month');
+        expect(leastResolution('year', 'day')).toEqual('day');
+        expect(leastResolution('year', 'hour')).toEqual('hour');
+        expect(leastResolution('year', 'second')).toEqual('second');
+        expect(leastResolution('day', 'day')).toEqual('day');
+        expect(leastResolution('day', 'second')).toEqual('second');
+        expect(leastResolution('second', 'day')).toEqual('second');
+        expect(leastResolution('day', 'millennium')).toEqual('day');
+        expect(leastResolution('day', 'hour')).toEqual('hour');
+        expect(leastResolution('minute', 'hour')).toEqual('minute');
+        expect(leastResolution('minute', 'second')).toEqual('second');
+        expect(leastResolution('minute', 'minute')).toEqual('minute');
+    });
+    test('greatest resolution', () => {
+        expect(greatestResolution('millennium', 'millennium')).toEqual('millennium');
+        expect(greatestResolution('millennium', 'century')).toEqual('millennium');
+        expect(greatestResolution('century', 'millennium')).toEqual('millennium');
+        expect(greatestResolution('millennium', 'decade')).toEqual('millennium');
+        expect(greatestResolution('millennium', 'year')).toEqual('millennium');
+        expect(greatestResolution('year', 'millennium')).toEqual('millennium');
+        expect(greatestResolution('millennium', 'second')).toEqual('millennium');
+        expect(greatestResolution('year', 'month')).toEqual('year');
+        expect(greatestResolution('year', 'day')).toEqual('year');
+        expect(greatestResolution('year', 'hour')).toEqual('year');
+        expect(greatestResolution('year', 'second')).toEqual('year');
+        expect(greatestResolution('day', 'day')).toEqual('day');
+        expect(greatestResolution('day', 'second')).toEqual('day');
+        expect(greatestResolution('second', 'day')).toEqual('day');
+        expect(greatestResolution('day', 'millennium')).toEqual('millennium');
+        expect(greatestResolution('day', 'hour')).toEqual('day');
+        expect(greatestResolution('minute', 'hour')).toEqual('hour');
+        expect(greatestResolution('minute', 'second')).toEqual('minute');
+        expect(greatestResolution('minute', 'minute')).toEqual('minute');
+    });
+    test('compareResolutions', () => {
+        expect(compareResolutions('millennium', 'millennium')).toEqual(0);
+        expect(compareResolutions('millennium', 'second')).toEqual(1);
+        expect(compareResolutions('second', 'millennium')).toEqual(-1);
+        expect(compareResolutions('day', 'hour')).toEqual(1);
+        expect(compareResolutions('hour', 'day')).toEqual(-1);
+        expect(compareResolutions('day', 'day')).toEqual(0);
+    });
+});
