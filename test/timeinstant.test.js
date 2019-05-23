@@ -133,4 +133,28 @@ describe('TimeInstant', () => {
            TimeInstant.fromText('2018-04-12T13:34:42').round('millennium', 'ceil').text
        ).toEqual('3001-01-01T00:00:00');
    });
+   test('from Date', () => {
+        expect(
+            TimeInstant.fromUTCDate(new Date(time(2019, 3, 4, 5, 6))).text
+        ).toEqual('2019-03-04T05:06:00');
+        expect(
+            TimeInstant.fromLocalDate(new Date(2019, 2, 4, 5, 6)).text
+        ).toEqual('2019-03-04T05:06:00');
+    });
+    test('now UTC', () => {
+        const tbefore = Math.floor(Date.now()/1000)*1000;
+        const t = TimeInstant.nowUTC().value;
+        const tafter = Math.floor(Date.now()/1000)*1000;
+        expect(t).toBeGreaterThanOrEqual(tbefore);
+        expect(t).toBeLessThanOrEqual(tafter);Node
+    });
+    test('now Local', () => {
+        const d1 = new Date();
+        const t = TimeInstant.nowLocal().value;
+        const d2 = new Date();
+        const tbefore = time(d1.getFullYear(), d1.getMonth() + 1, d1.getDate(), d1.getHours(), d1.getMinutes(), d1.getSeconds());
+        const tafter = time(d2.getFullYear(), d2.getMonth() + 1, d2.getDate(), d2.getHours(), d2.getMinutes(), d2.getSeconds() + 1);
+        expect(t).toBeGreaterThanOrEqual(tbefore);
+        expect(t).toBeLessThanOrEqual(tafter);
+    });
  });
