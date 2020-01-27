@@ -1,6 +1,6 @@
 {
   "name": "@jgoizueta/timerange",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "description": "Time ranges",
   "main": "index.js",
   "repository": "https://github.com/jgoizueta/timerange",
@@ -8,8 +8,8 @@
   "author": "jgoizueta@gmail.com",
   "license": "BSD3",
   "devDependencies": {
-    "eslint": "^5.12.0",
-    "jest": "^23.6.0"
+    "eslint": "^5.16.0",
+    "jest": "^25.1.0"
   },
   "scripts": {
     "test": "jest"

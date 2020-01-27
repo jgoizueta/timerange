@@ -1,3 +1,11 @@
+2020-01-27 v1.6.0
+  * New TimeRange durationIn method
+  * TimeInstant roundDown, roundUp methods
+
+2019-05-23 v1.5.0
+  * New TimeInstant constructors from Date
+  * Bug fix: local now instant (day was incorrect)
+
 2019-05-22 v1.4.0
   * New functions compareResolutions, leastResolution, greatestResolution
   * Bug fix: decade rounding
