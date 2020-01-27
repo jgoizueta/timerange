@@ -91,6 +91,9 @@ describe('TimeInstant', () => {
         expect(
             TimeInstant.fromText('2018-04-12T13:34:42').round('millennium').text
         ).toEqual('2001-01-01T00:00:00');
+        expect(
+            TimeInstant.fromText('2018-04-12T13:34:42').roundDown('minute').text
+        ).toEqual(TimeInstant.fromText('2018-04-12T13:34:42').round('minute').text);
     });
     test('round up', () => {
         expect(
@@ -132,6 +135,9 @@ describe('TimeInstant', () => {
        expect(
            TimeInstant.fromText('2018-04-12T13:34:42').round('millennium', 'ceil').text
        ).toEqual('3001-01-01T00:00:00');
+       expect(
+        TimeInstant.fromText('2018-04-12T13:34:42').roundUp('minute').text
+       ).toEqual(TimeInstant.fromText('2018-04-12T13:34:42').round('minute', 'ceil').text);
    });
    test('from Date', () => {
         expect(
