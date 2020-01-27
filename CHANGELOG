@@ -1,3 +1,7 @@
+2020-01-27 v1.7.0
+  * New TimeRange.fromTextOpen constructor
+  * Support for years 0000 to 0099
+
 2020-01-27 v1.6.0
   * New TimeRange durationIn method
   * TimeInstant roundDown, roundUp methods
