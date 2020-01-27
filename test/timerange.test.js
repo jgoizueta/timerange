@@ -44,6 +44,33 @@ describe('TimeRange', () => {
         t = TimeRange.fromText('2018..2019');
         expect(t.iso).toEqual('2018/2020');
     });
+    test('should be definable from open text description', () => {
+        const past = TimeInstant.fromComponents(0);
+        const future = TimeInstant.fromComponents(3000);
+        let t;
+
+        t = TimeRange.fromTextOpen('2000..2010', past, future);
+        expect(t.startValue).toEqual(time(2000));
+        expect(t.endValue).toEqual(time(2011));
+
+        t = TimeRange.fromTextOpen('2000..', past, future);
+        expect(t.startValue).toEqual(time(2000));
+        expect(t.endValue).toEqual(future.value);
+
+        t = TimeRange.fromTextOpen('..2000', past, future);
+        expect(t.startValue).toEqual(past.value);
+        expect(t.endValue).toEqual(time(2001));
+
+        t = TimeRange.fromTextOpen('..', past, future);
+        expect(t.startValue).toEqual(past.value);
+        expect(t.endValue).toEqual(future.value);
+
+        // by default initial time is year 0:
+        t = TimeRange.fromTextOpen('..2000');
+        expect(t.startValue).toEqual(past.value);
+        expect(t.endValue).toEqual(time(2001));
+    });
+
     test('can change resolution', () => {
         let t = TimeRange.fromText('2018..2019').in('month');
         expect(t.text).toEqual('2018-01..2019-12');
