@@ -44,6 +44,15 @@ describe('TimeRange', () => {
         let t = TimeRange.fromISO('2018-05-12T07');
         expect(t.durationSeconds).toEqual(3600);
     });
+    test('has duration in arbitrary units', () => {
+        let t = TimeRange.fromISO('2018-05-12T07');
+        expect(t.durationIn('second')).toEqual(3600);
+        expect(t.durationIn('day')).toEqual(1/24);
+        t = TimeRange.fromISO('2018-05-12..14');
+        expect(t.durationIn('day')).toEqual(3);
+        t = TimeRange.fromISO('2018-05');
+        expect(Math.round(t.durationIn('day'))).toEqual(30);
+    });
     test('has duration', () => {
         let t = TimeRange.fromISO('2018-05-12T07');
         expect(t.duration).toEqual(1);
