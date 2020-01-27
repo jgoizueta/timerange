@@ -1,6 +1,18 @@
 const TimeInstant = require('../lib/timeinstant');
 
 function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
+    if (y >= 0 && y < 100) {
+        const sgn = y < 0 ? '-' : '';
+        return Date.parse(
+            sgn + String(Math.abs(y)).padStart(4,0) +
+            '-' + String(m).padStart(2,0) +
+            '-' + String(d).padStart(2,0) +
+            'T' + String(h).padStart(2,0) +
+            ':' + String(min).padStart(2,0) +
+            ':' + String(sec).padStart(2,0) +
+            'Z'
+        );
+    }
     return Date.UTC(y, m - 1, d, h, min, sec);
 }
 
@@ -33,6 +45,15 @@ describe('TimeInstant', () => {
         expect(t.hour).toEqual(c[3]);
         expect(t.minute).toEqual(c[4]);
         expect(t.second).toEqual(c[5]);
+
+        expect(TimeInstant.fromComponents(0).year).toEqual(0);
+        expect(TimeInstant.fromComponents(0).value).toEqual(time(0));
+
+        expect(TimeInstant.fromComponents(1).year).toEqual(1);
+        expect(TimeInstant.fromComponents(1).value).toEqual(time(1));
+
+        expect(TimeInstant.fromComponents(-1).year).toEqual(-1);
+        expect(TimeInstant.fromComponents(-1).value).toEqual(time(-1));
      });
 
      test('fromText', () => {
@@ -50,6 +71,23 @@ describe('TimeInstant', () => {
         expect(t.minute).toEqual(c[4]);
         expect(t.second).toEqual(c[5]);
      });
+
+     test('fromTextLessThan100', () => {
+        const c = [1,3,4,5,6,7];
+        const v = time(...c);
+        const txt = '0001-03-04T05:06:07';
+        const t = TimeInstant.fromText(txt);
+        expect(t.components).toEqual(c);
+        expect(t.value).toEqual(v)
+        expect(t.text).toEqual(txt);
+        expect(t.year).toEqual(c[0]);
+        expect(t.month).toEqual(c[1]);
+        expect(t.day).toEqual(c[2]);
+        expect(t.hour).toEqual(c[3]);
+        expect(t.minute).toEqual(c[4]);
+        expect(t.second).toEqual(c[5]);
+     });
+
 
      test('round down', () => {
          expect(

@@ -2,6 +2,18 @@ const TimeRange = require('../lib/timerange');
 const TimeInstant = require('../lib/timeinstant');
 
 function time (y, m = 1, d = 1, h = 0, min = 0, sec = 0) {
+    if (y >= 0 && y < 100) {
+        const sgn = y < 0 ? '-' : '';
+        return Date.parse(
+            sgn + String(Math.abs(y)).padStart(4,0) +
+            '-' + String(m).padStart(2,0) +
+            '-' + String(d).padStart(2,0) +
+            'T' + String(h).padStart(2,0) +
+            ':' + String(min).padStart(2,0) +
+            ':' + String(sec).padStart(2,0) +
+            'Z'
+        );
+    }
     return Date.UTC(y, m - 1, d, h, min, sec);
 }
 
