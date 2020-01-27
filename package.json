@@ -6,10 +6,13 @@
   "repository": "https://github.com/jgoizueta/timerange",
   "homepage": "https://github.com/jgoizueta/timerange#readme",
   "author": "jgoizueta@gmail.com",
-  "license": "BSD3",
+  "license": "BSD-3-Clause",
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "jest": "^25.1.0"
+    "eslint": "^6.8.0",
+    "jest": "^25.1.0",
+    "canvas": "^2.5.0",
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
   },
   "scripts": {
     "test": "jest"
