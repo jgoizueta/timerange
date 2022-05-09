@@ -91,6 +91,7 @@ describe('TimeRange', () => {
         expect(t.durationIn('day')).toEqual(3);
         t = TimeRange.fromISO('2018-05');
         expect(Math.round(t.durationIn('day'))).toEqual(30);
+        expect(Math.round(t.durationIn('week'))).toEqual(4);
     });
     test('has duration', () => {
         let t = TimeRange.fromISO('2018-05-12T07');
