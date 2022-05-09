@@ -190,7 +190,7 @@ describe('TimeInstant', () => {
         const t = TimeInstant.nowUTC().value;
         const tafter = Math.floor(Date.now()/1000)*1000;
         expect(t).toBeGreaterThanOrEqual(tbefore);
-        expect(t).toBeLessThanOrEqual(tafter);Node
+        expect(t).toBeLessThanOrEqual(tafter);
     });
     test('now Local', () => {
         const d1 = new Date();
